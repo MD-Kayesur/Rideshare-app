@@ -23,6 +23,10 @@
       "package": "com.starter.app"
     },
     "web": {},
-    "scheme": "starter"
+    "scheme": "starter",
+    "plugins": [
+      "expo-web-browser",
+      "expo-router"
+    ]
   }
 }

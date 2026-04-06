@@ -59,32 +59,32 @@ export default function RootLayout() {
   // Components should handle the case when auth isn't available
   if (!publishableKey) {
     return (
-      <ClerkProvider 
-        publishableKey="" 
+      <ClerkProvider
+        publishableKey=""
         tokenCache={tokenCache}
       >
         <Provider store={store}>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen 
-              name="(auth)/missing-key" 
-              options={{ 
+            <Stack.Screen
+              name="(auth)/missing-key"
+              options={{
                 headerShown: false,
-              }} 
+              }}
             />
-            <Stack.Screen 
-              name="(auth)" 
-              options={{ 
+            <Stack.Screen
+              name="(auth)"
+              options={{
                 headerShown: false,
-              }} 
+              }}
             />
-            <Stack.Screen 
-              name="(tabs)" 
-              options={{ 
+            <Stack.Screen
+              name="(tabs)"
+              options={{
                 headerShown: false,
-              }} 
+              }}
             />
-            <Stack.Screen name="(pages)" options={{ headerShown: false }} />
+            <Stack.Screen name="workout/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </Provider>
@@ -93,8 +93,8 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider 
-      publishableKey={publishableKey} 
+    <ClerkProvider
+      publishableKey={publishableKey}
       tokenCache={tokenCache}
       // Add web-specific configuration
       {...(Platform.OS === 'web' && {
@@ -106,8 +106,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="workout" options={{ headerShown: false }} />
-          <Stack.Screen name="(pages)" options={{ headerShown: false }} />
+          <Stack.Screen name="workout/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
       </Provider>

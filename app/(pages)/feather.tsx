@@ -1,14 +1,14 @@
 import { View, Text, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
 export default function FeatherPage() {
   return (
     <SafeAreaView className="flex-1 bg-purple-50">
       <View className="flex-1 items-center justify-center px-6">
         <View className="bg-purple-500 rounded-full p-8 mb-6">
-          <Ionicons name="feather" size={64} color="white" />
+          <Feather name="feather" size={64} color="white" />
         </View>
         <Text className="text-3xl font-bold text-gray-800 mb-4">
           Feather
