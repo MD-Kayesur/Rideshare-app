@@ -1,22 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { Tabs, Redirect } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
+import { Tabs } from "expo-router";
 import ExpandableTabButton from "@/components/ExpandableTabButton";
 import { View } from "react-native";
 
 export default function Layout() {
-  const { isSignedIn, isLoaded } = useAuth();
-
-  if (!isLoaded) {
-    return null;
-  }
-
-  if (!isSignedIn) {
-    return <Redirect href="/(auth)/sign-in" />;
-  }
-
   return (
     <Tabs
       screenOptions={({ route }) => ({

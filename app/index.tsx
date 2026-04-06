@@ -1,31 +1,25 @@
 
-import { 
-  Pressable, 
-  Text, 
-  View, 
+import {
+  Pressable,
+  Text,
+  View,
   ScrollView,
   Platform,
-  StatusBar 
+  StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
 import SafeScreen from "@/components/SafeScreen";
 import tw from 'twrnc';
 
 export default function LandingPage() {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
   const pathname = usePathname();
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
 
   const handleGetStarted = () => {
-    if (isSignedIn) {
-      router.push("/(tabs)");
-    } else {
-      router.push("/(auth)/sign-in");
-    }
+    router.push("/(tabs)");
   };
 
   const pageIcons = [
@@ -54,11 +48,11 @@ export default function LandingPage() {
     <SafeScreen>
       {/* Status bar handling */}
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
+
       <View style={tw`flex-1 bg-white`}>
         {/* Main Content - Centered */}
         <View style={tw`flex-1 items-center justify-center px-6`}>
-          
+
           {/* App Logo/Icon */}
           <View style={tw`mb-8`}>
             <View style={tw`w-24 h-24 rounded-full bg-red-100 items-center justify-center mx-auto mb-4`}>
@@ -70,7 +64,7 @@ export default function LandingPage() {
           <Text style={tw`text-3xl md:text-4xl font-bold text-gray-900 text-center mb-2`}>
             Welcome to FitLife
           </Text>
-          
+
           <Text style={tw`text-2xl md:text-3xl font-bold text-red-600 text-center mb-6`}>
             MD_Kayesur
           </Text>
@@ -81,7 +75,7 @@ export default function LandingPage() {
           </Text>
 
           {/* Get Started Button */}
-          <Pressable 
+          <Pressable
             onPress={handleGetStarted}
             style={({ pressed }) => [
               tw`bg-red-600 px-10 py-4 rounded-full shadow-lg`,
@@ -89,7 +83,7 @@ export default function LandingPage() {
             ]}
           >
             <Text style={tw`text-white font-bold text-lg`}>
-             CLONE & GET STARTED NOW
+              CLONE & GET STARTED NOW
             </Text>
           </Pressable>
 
@@ -204,4 +198,3 @@ export default function LandingPage() {
 
 
 
- 
