@@ -50,6 +50,10 @@ export default function LandingPage() {
     }
   };
 
+  const handleSkip = () => {
+    router.push("/(tabs)");
+  };
+
   const onScroll = (event: any) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
     const index = event.nativeEvent.contentOffset.x / slideSize;
@@ -63,7 +67,15 @@ export default function LandingPage() {
     <SafeScreen>
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      <View style={tw`flex-1 bg-white`}>
+      <View style={tw`flex-1 bg-white relative`}>
+        {/* Skip Button */}
+        <Pressable
+          onPress={handleSkip}
+          style={tw`absolute top-12 right-6 z-10`}
+        >
+          <Text style={tw`text-gray-500 font-bold text-lg`}>Skip</Text>
+        </Pressable>
+
         <ScrollView
           ref={scrollViewRef}
           horizontal
@@ -74,48 +86,44 @@ export default function LandingPage() {
           style={tw`flex-1`}
         >
           {onboardingSteps.map((step, index) => (
-            <View key={index} style={[tw`items-center justify-center px-10`, { width: SCREEN_WIDTH }]}>
+            <View key={index} style={[tw`items-center justify-center px-6`, { width: SCREEN_WIDTH }]}>
               {/* Illustration */}
-              <View style={tw`mb-20 items-center`}>
+              <View style={tw`mb-12 items-center`}>
                 <Image
                   source={step.image}
-                  style={{ width: SCREEN_WIDTH * 0.9, height: 300 }}
+                  style={{ width: 350, height: 250 }}
                   resizeMode="contain"
                 />
               </View>
 
               {/* Title */}
-              <Text style={tw`text-[32px] font-bold text-[#333333] text-center mb-4`}>
+              <Text style={tw`text-3xl font-black text-gray-900 text-center mb-4`}>
                 {step.title}
               </Text>
 
               {/* Description */}
-              <Text style={tw`text-base text-[#999999] text-center leading-relaxed max-w-xs`}>
+              <Text style={tw`text-base text-gray-500 text-center leading-relaxed mb-16 max-w-xs`}>
                 {step.description}
               </Text>
             </View>
           ))}
         </ScrollView>
 
-        <View style={tw`items-center justify-center pb-24`}>
+        <View style={tw`items-center justify-center pb-12`}>
           {/* Progress Button */}
           <View style={tw`items-center justify-center`}>
+            {/* Fully Clickable Progress Area */}
             <Pressable
               onPress={handleNext}
               style={({ pressed }) => [
-                tw`w-24 h-24 rounded-full items-center justify-center relative`,
+                tw`w-24 h-24 rounded-full border-4 items-center justify-center relative`,
+                { borderColor: '#F3F4F6' },
                 pressed && tw`scale-95 opacity-90`
               ]}
             >
-              {/* External Progress Track */}
+              {/* Dynamic Border Overlay (Simulation) */}
               <View style={[
-                tw`absolute inset-0 rounded-full border-[3px]`,
-                { borderColor: '#E2F2E9' }
-              ]} />
-
-              {/* Progress Bar */}
-              <View style={[
-                tw`absolute inset-0 rounded-full border-[3px]`,
+                tw`absolute inset-0 rounded-full border-4`,
                 {
                   borderColor: 'transparent',
                   borderTopColor: '#10B981',
@@ -126,19 +134,29 @@ export default function LandingPage() {
                 }
               ]} />
 
-              {/* Inner Circle */}
               <View
-                style={[
-                  tw`w-18 h-18 rounded-full bg-[#10B981] items-center justify-center shadow-sm`,
-                ]}
+                style={tw`w-18 h-18 rounded-full bg-[#10B981] items-center justify-center shadow-lg`}
               >
                 {currentStep === onboardingSteps.length - 1 ? (
-                  <Text style={tw`text-white font-bold text-lg`}>Go</Text>
+                  <Text style={tw`text-white font-black text-lg`}>Go</Text>
                 ) : (
-                  <Ionicons name="arrow-forward" size={32} color="#555555" />
+                  <Ionicons name="arrow-forward" size={32} color="white" />
                 )}
               </View>
             </Pressable>
+          </View>
+
+          {/* Bottom indicator dots */}
+          <View style={tw`flex-row justify-center gap-2 mt-8`}>
+            {onboardingSteps.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  tw`h-1.5 rounded-full bg-gray-200`,
+                  currentStep === i ? tw`w-6 bg-[#10B981]` : tw`w-1.5`
+                ]}
+              />
+            ))}
           </View>
         </View>
       </View>
