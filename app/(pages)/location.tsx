@@ -8,8 +8,9 @@ export default function LocationPermissionScreen() {
         <View style={tw`flex-1 bg-gray-200`}>
             <StatusBar barStyle="dark-content" />
 
-            {/* Background Aesthetic (Simulated Grid Pattern) */}
+            {/* Background Aesthetic (Replacing missing map asset) */}
             <View style={[tw`absolute inset-0 bg-gray-100`, { opacity: 0.5 }]}>
+                {/* Simulated Grid Pattern */}
                 <View style={[tw`absolute inset-0`, {
                     borderWidth: 1,
                     borderColor: '#e5e7eb',

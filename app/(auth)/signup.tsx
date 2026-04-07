@@ -18,7 +18,7 @@ export default function SignUpScreen() {
                 <Text style={tw`text-3xl font-bold text-gray-900 mb-2`}>Create Account</Text>
                 <Text style={tw`text-base text-gray-500 mb-10`}>Start your journey with us today</Text>
 
-                <View style={tw`gap-6`}>
+                <View style={tw`gap-6 pb-10`}>
                     <View>
                         <Text style={tw`text-sm font-bold text-gray-700 mb-2 ml-1`}>FULL NAME</Text>
                         <TextInput
@@ -49,7 +49,7 @@ export default function SignUpScreen() {
 
                     <Pressable
                         style={({ pressed }) => [
-                            tw`bg-[#10B981] py-5 rounded-xl items-center shadow-lg mt-8`,
+                            tw`bg-[#10B981] py-5 rounded-xl items-center shadow-lg mt-4`,
                             pressed && tw`opacity-90`
                         ]}
                     >
@@ -57,7 +57,7 @@ export default function SignUpScreen() {
                     </Pressable>
                 </View>
 
-                <View style={tw`flex-row justify-center mt-12 pb-20`}>
+                <View style={tw`flex-row justify-center pb-20`}>
                     <Text style={tw`text-gray-500`}>Already have an account? </Text>
                     <Pressable onPress={() => router.push("/(auth)/login")}>
                         <Text style={tw`text-[#10B981] font-bold`}>Log In</Text>
