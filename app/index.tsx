@@ -163,9 +163,3 @@ export default function LandingPage() {
     </SafeScreen>
   );
 }
-
-
-
-
-
-
