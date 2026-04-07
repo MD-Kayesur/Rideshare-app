@@ -38,9 +38,13 @@ export default function LoginScreen() {
                         />
                     </View>
 
+                    <Pressable style={tw`items-end`}>
+                        <Text style={tw`text-[#10B981] font-bold`}>Forgot Password?</Text>
+                    </Pressable>
+
                     <Pressable
                         style={({ pressed }) => [
-                            tw`bg-[#10B981] py-5 rounded-xl items-center shadow-lg mt-8`,
+                            tw`bg-[#10B981] py-5 rounded-xl items-center shadow-lg mt-4`,
                             pressed && tw`opacity-90`
                         ]}
                     >

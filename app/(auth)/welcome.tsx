@@ -9,6 +9,7 @@ export default function WelcomeScreen() {
             <StatusBar barStyle="dark-content" />
 
             <View style={tw`flex-1 px-8 pt-10`}>
+                {/* Illustration */}
                 <View style={tw`flex-1 items-center justify-center`}>
                     <View style={tw`mb-12`}>
                         <Image
@@ -17,10 +18,17 @@ export default function WelcomeScreen() {
                             resizeMode="contain"
                         />
                     </View>
-                    <Text style={tw`text-3xl font-bold text-[#333333] text-center mb-4`}>Welcome</Text>
-                    <Text style={tw`text-base text-[#999999] text-center leading-relaxed`}>Have a better sharing experience</Text>
+
+                    <Text style={tw`text-3xl font-bold text-[#333333] text-center mb-4`}>
+                        Welcome
+                    </Text>
+
+                    <Text style={tw`text-base text-[#999999] text-center leading-relaxed`}>
+                        Have a better sharing experience
+                    </Text>
                 </View>
 
+                {/* Buttons Container */}
                 <View style={tw`pb-12 gap-5`}>
                     <Pressable
                         onPress={() => router.push("/(auth)/signup")}
