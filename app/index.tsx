@@ -1,193 +1,164 @@
-
 import {
   Pressable,
   Text,
   View,
   ScrollView,
   Platform,
-  StatusBar
+  StatusBar,
+  Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import SafeScreen from "@/components/SafeScreen";
 import tw from 'twrnc';
+import { Image } from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function LandingPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const [activeIcon, setActiveIcon] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const handleGetStarted = () => {
+  const onboardingSteps = [
+    {
+      title: "Anywhere you are",
+      description: "Sell houses easily with the help of Listenoryx and to make this line big I am writing more.",
+      image: require('../assets/images/Anywhere_you_are.png'),
+    },
+    {
+      title: "At anytime",
+      description: "Sell houses easily with the help of Listenoryx and to make this line big I am writing more.",
+      image: require('../assets/images/At_anytime.png'),
+    },
+    {
+      title: "Book your car",
+      description: "Sell houses easily with the help of Listenoryx and to make this line big I am writing more.",
+      image: require('../assets/images/Frame 1.png'),
+    }
+  ];
+
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  const handleNext = () => {
+    if (currentStep < onboardingSteps.length - 1) {
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      scrollViewRef.current?.scrollTo({ x: nextStep * SCREEN_WIDTH, animated: true });
+    } else {
+      router.push("/(pages)/location");
+    }
+  };
+
+  const handleSkip = () => {
     router.push("/(tabs)");
   };
 
-  const pageIcons = [
-    { icon: "information-circle" as keyof typeof Ionicons.glyphMap, route: "/(tabs)/about", label: "About", path: "/about" },
-    { icon: "logo-whatsapp" as keyof typeof Ionicons.glyphMap, route: "/whatsapp", label: "WhatsApp", path: "/whatsapp" },
-    { icon: "home" as keyof typeof Ionicons.glyphMap, route: "/(tabs)", label: "Home", path: "/(tabs)" },
-    { icon: "cube" as keyof typeof Ionicons.glyphMap, route: "/cube", label: "Cube", path: "/cube" },
-    { icon: "paper-plane" as keyof typeof Ionicons.glyphMap, route: "/paper-plane", label: "Paper", path: "/paper-plane" },
-    // { icon: "feather" as keyof typeof Ionicons.glyphMap, route: "/feather", label: "Feather", path: "/feather" },
-    // { icon: "shield-checkmark" as keyof typeof Ionicons.glyphMap, route: "/shield", label: "Shield", path: "/shield" },
-  ];
-
-  const handleIconPress = (route: string, label: string) => {
-    setActiveIcon(label);
-    router.push(route as any);
-  };
-
-  const isActive = (page: typeof pageIcons[0]) => {
-    if (activeIcon) {
-      return activeIcon === page.label;
+  const onScroll = (event: any) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    if (roundIndex !== currentStep) {
+      setCurrentStep(roundIndex);
     }
-    return pathname.includes(page.path) || (page.path === "/(tabs)" && pathname === "/");
   };
 
   return (
     <SafeScreen>
-      {/* Status bar handling */}
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      <View style={tw`flex-1 bg-white`}>
-        {/* Main Content - Centered */}
-        <View style={tw`flex-1 items-center justify-center px-6`}>
+      <View style={tw`flex-1 bg-white relative`}>
+        {/* Skip Button */}
+        <Pressable
+          onPress={handleSkip}
+          style={tw`absolute top-12 right-6 z-10`}
+        >
+          <Text style={tw`text-gray-500 font-bold text-lg`}>Skip</Text>
+        </Pressable>
 
-          {/* App Logo/Icon */}
-          <View style={tw`mb-8`}>
-            <View style={tw`w-24 h-24 rounded-full bg-red-100 items-center justify-center mx-auto mb-4`}>
-              <Ionicons name="fitness" size={48} color="#dc2626" />
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onScroll}
+          scrollEventThrottle={16}
+          style={tw`flex-1`}
+        >
+          {onboardingSteps.map((step, index) => (
+            <View key={index} style={[tw`items-center justify-center px-6`, { width: SCREEN_WIDTH }]}>
+              {/* Illustration */}
+              <View style={tw`mb-12 items-center`}>
+                <Image
+                  source={step.image}
+                  style={{ width: 350, height: 250 }}
+                  resizeMode="contain"
+                />
+              </View>
+
+              {/* Title */}
+              <Text style={tw`text-3xl font-black text-gray-900 text-center mb-4`}>
+                {step.title}
+              </Text>
+
+              {/* Description */}
+              <Text style={tw`text-base text-gray-500 text-center leading-relaxed mb-16 max-w-xs`}>
+                {step.description}
+              </Text>
             </View>
+          ))}
+        </ScrollView>
+
+        <View style={tw`items-center justify-center pb-12`}>
+          {/* Progress Button */}
+          <View style={tw`items-center justify-center`}>
+            {/* Fully Clickable Progress Area */}
+            <Pressable
+              onPress={handleNext}
+              style={({ pressed }) => [
+                tw`w-24 h-24 rounded-full border-4 items-center justify-center relative`,
+                { borderColor: '#F3F4F6' },
+                pressed && tw`scale-95 opacity-90`
+              ]}
+            >
+              {/* Dynamic Border Overlay (Simulation) */}
+              <View style={[
+                tw`absolute inset-0 rounded-full border-4`,
+                {
+                  borderColor: 'transparent',
+                  borderTopColor: '#10B981',
+                  borderRightColor: currentStep >= 1 ? '#10B981' : 'transparent',
+                  borderBottomColor: currentStep >= 2 ? '#10B981' : 'transparent',
+                  borderLeftColor: currentStep >= 2 ? '#10B981' : 'transparent',
+                  transform: [{ rotate: '-45deg' }]
+                }
+              ]} />
+
+              <View
+                style={tw`w-18 h-18 rounded-full bg-[#10B981] items-center justify-center shadow-lg`}
+              >
+                {currentStep === onboardingSteps.length - 1 ? (
+                  <Text style={tw`text-white font-black text-lg`}>Go</Text>
+                ) : (
+                  <Ionicons name="arrow-forward" size={32} color="white" />
+                )}
+              </View>
+            </Pressable>
           </View>
 
-          {/* Welcome Text */}
-          <Text style={tw`text-3xl md:text-4xl font-bold text-gray-900 text-center mb-2`}>
-            Welcome to FitLife
-          </Text>
-
-          <Text style={tw`text-2xl md:text-3xl font-bold text-red-600 text-center mb-6`}>
-            MD_Kayesur
-          </Text>
-
-          {/* Description */}
-          <Text style={tw`text-base md:text-lg text-gray-600 text-center leading-relaxed mb-10 max-w-md`}>
-            Start your fitness journey with us. Train hard, stay consistent, and achieve your goals step by step. Transform your body and mind.
-          </Text>
-
-          {/* Get Started Button */}
-          <Pressable
-            onPress={handleGetStarted}
-            style={({ pressed }) => [
-              tw`bg-red-600 px-10 py-4 rounded-full shadow-lg`,
-              pressed && tw`bg-red-700 opacity-90`
-            ]}
-          >
-            <Text style={tw`text-white font-bold text-lg`}>
-              CLONE & GET STARTED NOW
-            </Text>
-          </Pressable>
-
-          {/* Features Grid (Visible on larger screens) */}
-          <View style={tw`hidden md:flex flex-row flex-wrap justify-center mt-12 gap-6 max-w-2xl`}>
-            {[
-              { icon: "barbell", label: "Workout Plans" },
-              { icon: "nutrition", label: "Nutrition Guide" },
-              { icon: "stats-chart", label: "Progress Track" },
-              { icon: "people", label: "Community" }
-            ].map((feature, index) => (
-              <View key={index} style={tw`items-center p-4`}>
-                <View style={tw`w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-3`}>
-                  <Ionicons name={feature.icon as any} size={28} color="#dc2626" />
-                </View>
-                <Text style={tw`text-gray-700 font-medium`}>{feature.label}</Text>
-              </View>
+          {/* Bottom indicator dots */}
+          <View style={tw`flex-row justify-center gap-2 mt-8`}>
+            {onboardingSteps.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  tw`h-1.5 rounded-full bg-gray-200`,
+                  currentStep === i ? tw`w-6 bg-[#10B981]` : tw`w-1.5`
+                ]}
+              />
             ))}
           </View>
         </View>
-
-        {/* Bottom Navigation - Fixed for mobile, different for web */}
-        {Platform.OS === 'web' ? (
-          // Web Navigation - Horizontal at bottom
-          <View style={tw`border-t border-gray-200 py-4`}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw`px-4 items-center justify-center gap-6`}
-            >
-              {pageIcons.map((page, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => handleIconPress(page.route, page.label)}
-                  style={({ pressed }) => [
-                    tw`items-center  p-2 rounded-xl transition-all duration-200`,
-                    isActive(page) && tw`bg-red-50`,
-                    pressed && tw`opacity-70`
-                  ]}
-                >
-                  <View style={tw`relative`}>
-                    <Ionicons
-                      name={page.icon}
-                      size={page.label === "Home" ? 28 : 24}
-                      color={isActive(page) ? "#dc2626" : "#6b7280"}
-                    />
-                    {isActive(page) && (
-                      <View style={tw`absolute -bottom-1 left-1/2 w-1.5 h-1.5 bg-red-600 rounded-full -ml-0.75`} />
-                    )}
-                  </View>
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      tw`text-xs mt-2 font-medium`,
-                      isActive(page) ? tw`text-red-600` : tw`text-gray-500`
-                    ]}
-                  >
-                    {page.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        ) : (
-          // Mobile Navigation - Compact at bottom
-          <View style={tw`border-t border-gray-200 pt-3 pb-6 px-4`}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw`items-center justify-between w-full gap-2`}
-            >
-              {pageIcons.map((page, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => handleIconPress(page.route, page.label)}
-                  style={({ pressed }) => [
-                    tw`flex-1 items-center p-2 min-w-16`,
-                    pressed && tw`opacity-70`
-                  ]}
-                >
-                  <View style={[
-                    tw`w-12 h-12 rounded-full items-center justify-center mb-1`,
-                    isActive(page) ? tw`bg-red-100` : tw`bg-gray-100`
-                  ]}>
-                    <Ionicons
-                      name={page.icon}
-                      size={page.label === "Home" ? 24 : 20}
-                      color={isActive(page) ? "#dc2626" : "#6b7280"}
-                    />
-                  </View>
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      tw`text-xs font-medium`,
-                      isActive(page) ? tw`text-red-600` : tw`text-gray-500`
-                    ]}
-                  >
-                    {page.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        )}
       </View>
     </SafeScreen>
   );
