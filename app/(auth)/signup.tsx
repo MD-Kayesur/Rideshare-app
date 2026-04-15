@@ -1,55 +1,87 @@
-import { View, Text, Pressable, TextInput, StatusBar, ScrollView } from "react-native";
+import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import tw from 'twrnc';
+import React, { useState } from "react";
 
 export default function SignUpScreen() {
+    const [agreed, setAgreed] = useState(false);
+
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
-            <View style={tw`px-6 pt-6`}>
-                <Pressable onPress={() => router.back()} style={tw`p-2 -ml-2`}>
-                    <Ionicons name="arrow-back" size={28} color="#333" />
+
+            {/* Header */}
+            <View style={tw`px-6 pt-2 flex-row items-center`}>
+                <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
+                    <Ionicons name="chevron-back" size={24} color="#333" />
+                    <Text style={tw`text-lg text-gray-800 ml-1`}>Back</Text>
                 </Pressable>
             </View>
 
-            <ScrollView style={tw`flex-1 px-8 pt-6`} showsVerticalScrollIndicator={false}>
-                <Text style={tw`text-3xl font-bold text-gray-900 mb-2`}>Create Account</Text>
-                <Text style={tw`text-base text-gray-500 mb-10`}>Start your journey with us today</Text>
+            <ScrollView style={tw`flex-1 px-8 pt-8`} showsVerticalScrollIndicator={false}>
+                <Text style={tw`text-2xl font-bold text-gray-800 mb-8`}>
+                    Sign up with your email or phone number
+                </Text>
 
-                <View style={tw`gap-6 pb-10`}>
-                    <View>
-                        <Text style={tw`text-sm font-bold text-gray-700 mb-2 ml-1`}>FULL NAME</Text>
-                        <TextInput
-                            placeholder="John Doe"
-                            style={tw`border-2 border-gray-100 rounded-xl px-5 py-4 text-lg`}
-                            placeholderTextColor="#999"
-                        />
+                <View style={tw`gap-5 pb-8`}>
+                    {/* Name Input */}
+                    <TextInput
+                        placeholder="Name"
+                        style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
+                        placeholderTextColor="#ccc"
+                    />
+
+                    {/* Email Input */}
+                    <TextInput
+                        placeholder="Email"
+                        style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
+                        placeholderTextColor="#ccc"
+                        keyboardType="email-address"
+                    />
+
+                    {/* Phone Input with Country Code */}
+                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white`}>
+                        <Pressable style={tw`flex-row items-center px-4 py-4 border-r border-gray-200`}>
+                            <Text style={tw`text-2xl mr-2`}>🇧🇩</Text>
+                            <Ionicons name="chevron-down" size={16} color="#666" />
+                        </Pressable>
+                        <View style={tw`flex-row items-center flex-1 px-4`}>
+                            <Text style={tw`text-base text-gray-800 mr-2`}>+880</Text>
+                            <TextInput
+                                placeholder="Your mobile number"
+                                style={tw`flex-1 py-4 text-base`}
+                                placeholderTextColor="#ccc"
+                                keyboardType="phone-pad"
+                            />
+                        </View>
                     </View>
 
-                    <View>
-                        <Text style={tw`text-sm font-bold text-gray-700 mb-2 ml-1`}>EMAIL</Text>
-                        <TextInput
-                            placeholder="example@mail.com"
-                            style={tw`border-2 border-gray-100 rounded-xl px-5 py-4 text-lg`}
-                            placeholderTextColor="#999"
-                        />
+                    {/* Gender Selection */}
+                    <Pressable style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white`}>
+                        <Text style={tw`text-base text-gray-300`}>Gender</Text>
+                        <Ionicons name="chevron-down" size={20} color="#666" />
+                    </Pressable>
+
+                    {/* Terms and Privacy */}
+                    <View style={tw`flex-row items-center`}>
+                        <Pressable
+                            onPress={() => setAgreed(!agreed)}
+                            style={tw`w-6 h-6 rounded-full border-2 ${agreed ? 'bg-[#10B981] border-[#10B981]' : 'border-gray-300'} items-center justify-center mr-3`}
+                        >
+                            {agreed && <Ionicons name="checkmark" size={16} color="white" />}
+                        </Pressable>
+                        <Text style={tw`flex-1 text-sm text-gray-400`}>
+                            By signing up, you agree to the <Text style={tw`text-[#10B981]`}>Terms of service</Text> and <Text style={tw`text-[#10B981]`}>Privacy policy</Text>.
+                        </Text>
                     </View>
 
-                    <View>
-                        <Text style={tw`text-sm font-bold text-gray-700 mb-2 ml-1`}>PASSWORD</Text>
-                        <TextInput
-                            placeholder="••••••••"
-                            secureTextEntry
-                            style={tw`border-2 border-gray-100 rounded-xl px-5 py-4 text-lg`}
-                            placeholderTextColor="#999"
-                        />
-                    </View>
-
+                    {/* Sign Up Button */}
                     <Pressable
+                        onPress={() => router.push("/(auth)/verify")}
                         style={({ pressed }) => [
-                            tw`bg-[#10B981] py-5 rounded-xl items-center shadow-lg mt-4`,
+                            tw`bg-[#10B981] py-4 rounded-xl items-center mt-4`,
                             pressed && tw`opacity-90`
                         ]}
                     >
@@ -57,10 +89,36 @@ export default function SignUpScreen() {
                     </Pressable>
                 </View>
 
-                <View style={tw`flex-row justify-center pb-20`}>
+                {/* Divider */}
+                <View style={tw`flex-row items-center mb-8`}>
+                    <View style={tw`flex-1 h-[1px] bg-gray-200`} />
+                    <Text style={tw`mx-4 text-gray-400`}>or</Text>
+                    <View style={tw`flex-1 h-[1px] bg-gray-200`} />
+                </View>
+
+                {/* Social Logins */}
+                <View style={tw`gap-4 mb-10`}>
+                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                        <Ionicons name="logo-google" size={24} color="#DB4437" />
+                        <Text style={tw`text-gray-700 font-medium`}>Sign up with Gmail</Text>
+                    </Pressable>
+
+                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                        <Ionicons name="logo-facebook" size={24} color="#1877F2" />
+                        <Text style={tw`text-gray-700 font-medium`}>Sign up with Facebook</Text>
+                    </Pressable>
+
+                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                        <Ionicons name="logo-apple" size={24} color="black" />
+                        <Text style={tw`text-gray-700 font-medium`}>Sign up with Apple</Text>
+                    </Pressable>
+                </View>
+
+                {/* Footer */}
+                <View style={tw`flex-row justify-center pb-12`}>
                     <Text style={tw`text-gray-500`}>Already have an account? </Text>
                     <Pressable onPress={() => router.push("/(auth)/login")}>
-                        <Text style={tw`text-[#10B981] font-bold`}>Log In</Text>
+                        <Text style={tw`text-[#10B981] font-bold`}>Sign in</Text>
                     </Pressable>
                 </View>
             </ScrollView>
