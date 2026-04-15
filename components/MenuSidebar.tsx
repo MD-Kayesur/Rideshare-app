@@ -25,14 +25,14 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
 
     return (
         <>
-            <Pressable 
-                style={[tw`absolute inset-0 bg-black/40 z-50`]} 
+            <Pressable
+                style={[tw`absolute inset-0 bg-black/40 z-[9998]`]}
                 onPress={onClose}
             />
-            <Animated.View 
+            <Animated.View
                 style={[
-                    tw`absolute top-0 bottom-0 left-0 w-85 bg-white z-[60] shadow-2xl`,
-                    { 
+                    tw`absolute top-0 bottom-0 left-0 w-85 bg-white z-[9999] shadow-2xl`,
+                    {
                         transform: [{ translateX: animValue }],
                         borderTopRightRadius: 180,
                     }
@@ -45,10 +45,10 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                             <Text style={tw`text-xl font-medium text-gray-800 ml-1`}>Back</Text>
                         </Pressable>
                         <View style={tw`bg-[#D1FAE5] w-24 h-24 rounded-full p-1 items-center justify-center overflow-hidden mb-6 border border-[#10B981]`}>
-                            <Image 
-                                source={{ uri: 'https://images.unsplash.com/photo-1540560714873-45f69ee7333a?auto=format&fit=crop&w=200&h=200&q=80' }} 
-                                style={tw`w-full h-full rounded-full`} 
-                                resizeMode="cover" 
+                            <Image
+                                source={{ uri: 'https://images.unsplash.com/photo-1540560714873-45f69ee7333a?auto=format&fit=crop&w=200&h=200&q=80' }}
+                                style={tw`w-full h-full rounded-full`}
+                                resizeMode="cover"
                             />
                         </View>
                         <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Nate Samson</Text>
@@ -56,13 +56,13 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                     </View>
                     <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
                         {menuItems.map(item => (
-                            <Pressable 
-                                key={item.id} 
-                                onPress={() => { onClose(); router.push(item.route as any); }} 
-                                style={tw`flex-row items-center px-10 py-5 border-b border-gray-50`}
+                            <Pressable
+                                key={item.id}
+                                onPress={() => { onClose(); router.push(item.route as any); }}
+                                style={tw`flex-row items-center px-10 py-6 border-b border-gray-50`}
                             >
-                                <Ionicons name={item.icon as any} size={22} color="#6B7280" />
-                                <Text style={tw`text-lg font-medium text-gray-700 ml-4`}>{item.title}</Text>
+                                <Ionicons name={item.icon as any} size={28} color="#374151" />
+                                <Text style={tw`text-xl font-bold text-gray-800 ml-5`}>{item.title}</Text>
                             </Pressable>
                         ))}
                     </ScrollView>

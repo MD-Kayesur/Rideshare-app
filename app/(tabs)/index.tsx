@@ -1,10 +1,9 @@
-import React, { useState, useRef } from "react";
-import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Dimensions, Animated } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Dimensions, DeviceEventEmitter } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import tw from 'twrnc';
-import { MenuSidebar } from "../../components/MenuSidebar";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -13,19 +12,8 @@ export default function HomeScreen() {
     const [flowState, setFlowState] = useState<'none' | 'selecting' | 'confirming'>('none');
     const [locations, setLocations] = useState({ from: '', to: '' });
 
-    // Sidebar State
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const sidebarAnim = useRef(new Animated.Value(-500)).current;
-
     const toggleSidebar = (open: boolean) => {
-        if (open) setIsSidebarOpen(true);
-        Animated.timing(sidebarAnim, {
-            toValue: open ? 0 : -500,
-            duration: 350,
-            useNativeDriver: true,
-        }).start(() => {
-            if (!open) setIsSidebarOpen(false);
-        });
+        DeviceEventEmitter.emit('toggleSidebar', open);
     };
 
     const recentPlaces = [
@@ -238,13 +226,6 @@ export default function HomeScreen() {
 
             {/* Address Selection Bottom Sheet */}
             {renderBottomSheet()}
-
-            {/* Menu Sidebar */}
-            <MenuSidebar
-                isOpen={isSidebarOpen}
-                onClose={() => toggleSidebar(false)}
-                animValue={sidebarAnim}
-            />
         </View>
     );
 }
