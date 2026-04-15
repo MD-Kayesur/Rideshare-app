@@ -1,104 +1,82 @@
-import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import ExpandableTabButton from "@/components/ExpandableTabButton";
-import { View } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import tw from 'twrnc';
 
 export default function Layout() {
   return (
     <Tabs
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-
-        // Tab icon with custom active color
-        tabBarIcon: ({ color, size, focused }) => {
-          if (route.name === "about") {
-            return <ExpandableTabButton size={size} focused={focused} />;
-          }
-
-          let iconName: keyof typeof Ionicons.glyphMap = "call";
-          if (route.name === "contact") iconName = "call";
-
-          if (focused) {
-            // Active: red gradient with white outline
-            return (
-              <View
-                style={{
-                  borderRadius: 50,
-                  padding: 2,
-                  backgroundColor: "white",
-                }}
-              >
-                <LinearGradient
-                  colors={["#FF4D4D", "#FF0000"]}
-                  start={[0, 0]}
-                  end={[1, 1]}
-                  style={{
-                    borderRadius: 50,
-                    width: size + 4,
-                    height: size + 4,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Ionicons name={iconName} size={size} color="white" />
-                </LinearGradient>
-              </View>
-            );
-          }
-
-          // Inactive: white
-          return <Ionicons name={iconName} size={size} color="white" />;
-        },
-
-        tabBarStyle: {
-          position: "absolute",
-          bottom: 20,
-          left: 20,
-          right: 20,
-          height: 70,
-          borderRadius: 20,
-          overflow: "hidden",
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          backgroundColor: "transparent", // blur behind
-        },
-
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "bold",
-          color: "white",
-        },
-      })}
+        tabBarStyle: tw`absolute bottom-0 left-0 right-0 h-24 bg-white border-t-0 rounded-t-3xl shadow-lg pt-2`,
+        tabBarActiveTintColor: '#10B981',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarLabelStyle: tw`text-xs font-bold mb-4`,
+      }}
     >
       <Tabs.Screen
-        name="about"
+        name="index"
         options={{
-          title: "About",
-          tabBarBackground: () => (
-            <BlurView
-              intensity={100}
-              tint="dark"
-              className="absolute inset-0 bg-black/70"
-            />
+          title: "Home",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favourite"
+        options={{
+          title: "Favourite",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "heart" : "heart-outline"} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="wallet"
+        options={{
+          title: "Wallet",
+          tabBarLabel: () => null, // Hide label for wallet
+          tabBarIcon: ({ focused }) => (
+            <View style={tw`items-center justify-center -mt-12`}>
+              <View style={[
+                tw`w-18 h-20 items-center justify-center relative`,
+                { backgroundColor: 'transparent' }
+              ]}>
+                {/* Simulated Hexagon Shape */}
+                <View style={[
+                  tw`bg-[#10B981] absolute inset-0`,
+                  {
+                    borderRadius: 15,
+                    transform: [{ rotate: '45deg' }],
+                  }
+                ]} />
+                <Ionicons name="wallet-outline" size={30} color="white" style={tw`z-10`} />
+              </View>
+              <Text style={tw`text-xs font-bold text-gray-500 mt-2`}>Wallet</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="offer"
+        options={{
+          title: "Offer",
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name={focused ? "sale" : "sale-outline"} size={26} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="contact"
         options={{
-          title: "Contact",
-          tabBarBackground: () => (
-            <BlurView
-              intensity={100}
-              tint="dark"
-              className="absolute inset-0 bg-black/70"
-            />
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "person" : "person-outline"} size={26} color={color} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
