@@ -114,28 +114,33 @@ export default function LocationPermissionScreen() {
                         </View>
                     )}
 
+                     
+
                     <Pressable
                         onPress={handleLocationPermission} // 4. Attach the logic here
                         disabled={loading}
-                        style={({ pressed }) => [
-                            tw`bg-[#10B981] w-full py-5 rounded-xl items-center mb-6`,
-                            (pressed || loading) && tw`opacity-90`
-                        ]}
+                        style={tw`flex-row w-full mb-6 items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    // style={({ pressed }) => [
+                    //     tw`bg-[#10B981] w-full py-5 rounded-xl items-center mb-6`,
+                    //     (pressed || loading) && tw`opacity-90`
+                    // ]}
                     >
-                        <Text style={tw`text-white font-bold text-lg`}>
+                        <Text style={tw`text-black font-bold text-lg`}>
                             {loading ? "Processing..." : "Use my location"}
                         </Text>
                     </Pressable>
 
                     <Pressable
                         onPress={() => router.push("/(auth)/welcome")}
-                        style={({ pressed }) => [
-                            tw`py-2`,
-                            pressed && tw`opacity-60`
-                        ]}
+                        style={tw`flex-row w-full items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    // style={({ pressed }) => [
+                    //     tw`py-2`,
+                    //     pressed && tw`opacity-60`
+                    // ]}
                     >
                         <Text style={tw`text-gray-400 font-medium text-lg`}>Skip for now</Text>
                     </Pressable>
+                    
                 </View>
             </SafeAreaView>
         </View>
