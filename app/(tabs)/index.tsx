@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import tw from 'twrnc';
 
@@ -39,7 +40,10 @@ export default function HomeScreen() {
                     <Pressable style={tw`w-12 h-12 bg-[#10B981]/10 rounded-lg items-center justify-center`}>
                         <Ionicons name="menu" size={28} color="#10B981" />
                     </Pressable>
-                    <Pressable style={tw`w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm`}>
+                    <Pressable
+                        onPress={() => router.push("/(pages)/notifications")}
+                        style={tw`w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm`}
+                    >
                         <Ionicons name="notifications-outline" size={24} color="#1F2937" />
                     </Pressable>
                 </View>
