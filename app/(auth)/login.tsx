@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image } from "react-native";
+import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -50,15 +50,13 @@ export default function LoginScreen() {
                         <Text style={tw`text-red-500 font-medium`}>Forgot password?</Text>
                     </Pressable>
 
-                    {/* Sign Up Button (actually Sign In in this context based on Image 3 text) */}
+                    {/* Login Button */}
                     <Pressable
                         onPress={() => router.push("/(tabs)")}
-                        style={({ pressed }) => [
-                            tw`bg-[#10B981] py-4 rounded-xl items-center mt-4`,
-                            pressed && tw`opacity-90`
-                        ]}
+                         style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                      
                     >
-                        <Text style={tw`text-white font-bold text-lg`}>Sign In</Text>
+                        <Text style={tw`text-black font-bold text-lg`}>Login</Text>
                     </Pressable>
                 </View>
 
@@ -71,17 +69,26 @@ export default function LoginScreen() {
 
                 {/* Social Logins */}
                 <View style={tw`gap-4 mb-10`}>
-                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                    <Pressable
+                        onPress={() => Alert.alert("Social Login", "Gmail login will be implemented soon.")}
+                        style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    >
                         <Ionicons name="logo-google" size={24} color="#DB4437" />
                         <Text style={tw`text-gray-700 font-medium`}>Sign up with Gmail</Text>
                     </Pressable>
 
-                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                    <Pressable
+                        onPress={() => Alert.alert("Social Login", "Facebook login will be implemented soon.")}
+                        style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    >
                         <Ionicons name="logo-facebook" size={24} color="#1877F2" />
                         <Text style={tw`text-gray-700 font-medium`}>Sign up with Facebook</Text>
                     </Pressable>
 
-                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                    <Pressable
+                        onPress={() => Alert.alert("Social Login", "Apple login will be implemented soon.")}
+                        style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    >
                         <Ionicons name="logo-apple" size={24} color="black" />
                         <Text style={tw`text-gray-700 font-medium`}>Sign up with Apple</Text>
                     </Pressable>

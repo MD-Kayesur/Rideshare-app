@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image } from "react-native";
+import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Alert, Modal, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -7,6 +7,18 @@ import React, { useState } from "react";
 
 export default function SignUpScreen() {
     const [agreed, setAgreed] = useState(false);
+    const [gender, setGender] = useState("");
+    const [showGenderModal, setShowGenderModal] = useState(false);
+    const [showCountryModal, setShowCountryModal] = useState(false);
+    const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
+
+    const genderOptions = ["Male", "Female", "Other"];
+    const countries = [
+        { name: "Bangladesh", flag: "🇧🇩", code: "+880" },
+        { name: "United States", flag: "🇺🇸", code: "+1" },
+        { name: "United Kingdom", flag: "🇬🇧", code: "+44" },
+        { name: "India", flag: "🇮🇳", code: "+91" },
+    ];
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -43,12 +55,15 @@ export default function SignUpScreen() {
 
                     {/* Phone Input with Country Code */}
                     <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white`}>
-                        <Pressable style={tw`flex-row items-center px-4 py-4 border-r border-gray-200`}>
-                            <Text style={tw`text-2xl mr-2`}>🇧🇩</Text>
+                        <Pressable
+                            onPress={() => setShowCountryModal(true)}
+                            style={tw`flex-row items-center px-4 py-4 border-r border-gray-200`}
+                        >
+                            <Text style={tw`text-2xl mr-2`}>{selectedCountry.flag}</Text>
                             <Ionicons name="chevron-down" size={16} color="#666" />
                         </Pressable>
                         <View style={tw`flex-row items-center flex-1 px-4`}>
-                            <Text style={tw`text-base text-gray-800 mr-2`}>+880</Text>
+                            <Text style={tw`text-base text-gray-800 mr-2`}>{selectedCountry.code}</Text>
                             <TextInput
                                 placeholder="Your mobile number"
                                 style={tw`flex-1 py-4 text-base`}
@@ -58,11 +73,78 @@ export default function SignUpScreen() {
                         </View>
                     </View>
 
+                    {/* Country Modal */}
+                    <Modal
+                        visible={showCountryModal}
+                        transparent={true}
+                        animationType="slide"
+                        onRequestClose={() => setShowCountryModal(false)}
+                    >
+                        <TouchableOpacity
+                            activeOpacity={1}
+                            onPress={() => setShowCountryModal(false)}
+                            style={tw`flex-1 bg-black/50 justify-end`}
+                        >
+                            <View style={tw`bg-white rounded-t-3xl p-6`}>
+                                <Text style={tw`text-xl font-bold text-gray-800 mb-6 text-center`}>Select Country</Text>
+                                {countries.map((item, index) => (
+                                    <Pressable
+                                        key={item.code}
+                                        onPress={() => {
+                                            setSelectedCountry(item);
+                                            setShowCountryModal(false);
+                                        }}
+                                        style={tw`flex-row items-center py-4 border-b border-gray-100 ${index === countries.length - 1 ? 'border-b-0' : ''}`}
+                                    >
+                                        <Text style={tw`text-2xl mr-4`}>{item.flag}</Text>
+                                        <Text style={tw`flex-1 text-lg text-gray-700`}>{item.name}</Text>
+                                        <Text style={tw`text-lg text-gray-400`}>{item.code}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
                     {/* Gender Selection */}
-                    <Pressable style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white`}>
-                        <Text style={tw`text-base text-gray-300`}>Gender</Text>
+                    <Pressable
+                        onPress={() => setShowGenderModal(true)}
+                        style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white`}
+                    >
+                        <Text style={[tw`text-base`, gender ? tw`text-gray-800` : tw`text-gray-300`]}>
+                            {gender || "Gender"}
+                        </Text>
                         <Ionicons name="chevron-down" size={20} color="#666" />
                     </Pressable>
+
+                    {/* Modal for Gender */}
+                    <Modal
+                        visible={showGenderModal}
+                        transparent={true}
+                        animationType="fade"
+                        onRequestClose={() => setShowGenderModal(false)}
+                    >
+                        <TouchableOpacity
+                            activeOpacity={1}
+                            onPress={() => setShowGenderModal(false)}
+                            style={tw`flex-1 bg-black/50 justify-center items-center px-8`}
+                        >
+                            <View style={tw`bg-white w-full rounded-2xl p-4`}>
+                                <Text style={tw`text-xl font-bold text-gray-800 mb-4 text-center`}>Select Gender</Text>
+                                {genderOptions.map((option, index) => (
+                                    <Pressable
+                                        key={option}
+                                        onPress={() => {
+                                            setGender(option);
+                                            setShowGenderModal(false);
+                                        }}
+                                        style={tw`py-4 border-b border-gray-100 ${index === genderOptions.length - 1 ? 'border-b-0' : ''}`}
+                                    >
+                                        <Text style={tw`text-lg text-gray-700 text-center`}>{option}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
 
                     {/* Terms and Privacy */}
                     <View style={tw`flex-row items-center`}>
@@ -79,13 +161,11 @@ export default function SignUpScreen() {
 
                     {/* Sign Up Button */}
                     <Pressable
-                        onPress={() => router.push("/(auth)/verify")}
-                        style={({ pressed }) => [
-                            tw`bg-[#10B981] py-4 rounded-xl items-center mt-4`,
-                            pressed && tw`opacity-90`
-                        ]}
+                        onPress={() => agreed && router.push("/(auth)/verify")}
+                        disabled={!agreed}
+                        style={tw`flex-row items-center justify-center border ${agreed ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
                     >
-                        <Text style={tw`text-white font-bold text-lg`}>Sign Up</Text>
+                        <Text style={[tw`font-bold text-lg`, agreed ? tw`text-[#10B981]` : tw`text-gray-300`]}>Sign Up</Text>
                     </Pressable>
                 </View>
 
@@ -98,17 +178,26 @@ export default function SignUpScreen() {
 
                 {/* Social Logins */}
                 <View style={tw`gap-4 mb-10`}>
-                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                    <Pressable
+                        onPress={() => Alert.alert("Social Login", "Gmail login will be implemented soon.")}
+                        style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    >
                         <Ionicons name="logo-google" size={24} color="#DB4437" />
                         <Text style={tw`text-gray-700 font-medium`}>Sign up with Gmail</Text>
                     </Pressable>
 
-                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                    <Pressable
+                        onPress={() => Alert.alert("Social Login", "Facebook login will be implemented soon.")}
+                        style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    >
                         <Ionicons name="logo-facebook" size={24} color="#1877F2" />
                         <Text style={tw`text-gray-700 font-medium`}>Sign up with Facebook</Text>
                     </Pressable>
 
-                    <Pressable style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}>
+                    <Pressable
+                        onPress={() => Alert.alert("Social Login", "Apple login will be implemented soon.")}
+                        style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
+                    >
                         <Ionicons name="logo-apple" size={24} color="black" />
                         <Text style={tw`text-gray-700 font-medium`}>Sign up with Apple</Text>
                     </Pressable>
@@ -125,3 +214,4 @@ export default function SignUpScreen() {
         </SafeAreaView>
     );
 }
+
