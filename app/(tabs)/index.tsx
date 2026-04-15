@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Dimensions } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Dimensions, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -11,6 +11,19 @@ export default function HomeScreen() {
     const [mode, setMode] = useState<'transport' | 'delivery'>('transport');
     const [flowState, setFlowState] = useState<'none' | 'selecting' | 'confirming'>('none');
     const [locations, setLocations] = useState({ from: '', to: '' });
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const sidebarAnim = useRef(new Animated.Value(-300)).current;
+
+    const toggleSidebar = (open: boolean) => {
+        if (open) setIsSidebarOpen(true);
+        Animated.timing(sidebarAnim, {
+            toValue: open ? 0 : -300,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            if (!open) setIsSidebarOpen(false);
+        });
+    };
 
     const recentPlaces = [
         { id: '1', name: 'Office', address: '2972 Westheimer Rd. Santa Ana, Illinois 85486', distance: '2.7km' },
@@ -19,11 +32,79 @@ export default function HomeScreen() {
         { id: '4', name: 'Shopping mall', address: '4140 Parker Rd. Allentown, New Mexico 31134', distance: '4.0km' }
     ];
 
+    const menuItems = [
+        { id: '1', title: 'My Profile', icon: 'person-outline', route: '/(auth)/profile' },
+        { id: '2', title: 'My Wallet', icon: 'wallet-outline', route: '/(tabs)/wallet' },
+        { id: '3', title: 'History', icon: 'time-outline', route: '/(pages)/history' },
+        { id: '4', title: 'Notifications', icon: 'notifications-outline', route: '/(pages)/notifications' },
+        { id: '5', title: 'Offer', icon: 'pricetag-outline', route: '/(tabs)/offer' },
+        { id: '6', title: 'Settings', icon: 'settings-outline', route: '/(pages)/settings' },
+        { id: '7', title: 'Help', icon: 'help-circle-outline', route: '/(pages)/help' },
+        { id: '8', title: 'Logout', icon: 'log-out-outline', route: '/(auth)/login', color: '#EF4444' },
+    ];
+
+    const SidebarOverlay = () => (
+        <>
+            {isSidebarOpen && (
+                <Pressable
+                    style={[tw`absolute inset-0 bg-black/50 z-50`]}
+                    onPress={() => toggleSidebar(false)}
+                />
+            )}
+            <Animated.View
+                style={[
+                    tw`absolute top-0 bottom-0 left-0 w-72 bg-white z-[60] shadow-2xl`,
+                    { transform: [{ translateX: sidebarAnim }] }
+                ]}
+            >
+                <SafeAreaView style={tw`flex-1`}>
+                    <View style={tw`p-6 border-b border-gray-100 items-center`}>
+                        <View style={tw`w-20 h-20 bg-gray-100 rounded-full mb-4 items-center justify-center overflow-hidden`}>
+                            <Image
+                                source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80' }}
+                                style={tw`w-full h-full`}
+                            />
+                        </View>
+                        <Text style={tw`text-xl font-bold text-gray-800`}>Kaye Sur</Text>
+                        <Text style={tw`text-gray-400`}>kaye.sur@gmail.com</Text>
+                    </View>
+
+                    <ScrollView style={tw`flex-1 py-4`}>
+                        {menuItems.map(item => (
+                            <Pressable
+                                key={item.id}
+                                onPress={() => {
+                                    toggleSidebar(false);
+                                    router.push(item.route as any);
+                                }}
+                                style={tw`flex-row items-center px-6 py-4`}
+                            >
+                                <View style={tw`w-10 h-10 rounded-lg bg-gray-50 items-center justify-center mr-4`}>
+                                    <Ionicons name={item.icon as any} size={22} color={item.color || "#10B981"} />
+                                </View>
+                                <Text style={tw`text-base font-medium ${item.color ? 'text-red-500' : 'text-gray-700'}`}>{item.title}</Text>
+                                <Ionicons name="chevron-forward" size={18} color="#D1D5DB" style={tw`ml-auto`} />
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+
+                    <View style={tw`p-6 border-t border-gray-100`}>
+                        <View style={tw`flex-row items-center mb-4`}>
+                            <View style={tw`w-2 h-2 rounded-full bg-green-500 mr-2`} />
+                            <Text style={tw`text-gray-400 text-sm`}>Online</Text>
+                        </View>
+                        <Text style={tw`text-gray-300 text-xs`}>Version 1.0.0</Text>
+                    </View>
+                </SafeAreaView>
+            </Animated.View>
+        </>
+    );
+
     const renderBottomSheet = () => {
         if (flowState === 'none') return null;
 
         return (
-            <View style={[tw`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50`, { height: flowState === 'selecting' ? '65%' : '50%' }]}>
+            <View style={[tw`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40`, { height: flowState === 'selecting' ? '65%' : '50%' }]}>
                 {/* Drag Handle */}
                 <View style={tw`items-center py-4`}>
                     <View style={tw`w-16 h-1.5 bg-gray-200 rounded-full`} />
@@ -134,6 +215,9 @@ export default function HomeScreen() {
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+            {/* Sidebar Navigation */}
+            <SidebarOverlay />
+
             {/* Map Background */}
             <View style={tw`absolute inset-0 bg-gray-100`}>
                 <Image
@@ -157,7 +241,10 @@ export default function HomeScreen() {
             <SafeAreaView style={tw`flex-1 px-4 pt-4`}>
                 {/* Top Bar */}
                 <View style={tw`flex-row justify-between items-center mb-6`}>
-                    <Pressable style={tw`w-12 h-12 bg-[#10B981]/10 rounded-lg items-center justify-center`}>
+                    <Pressable
+                        onPress={() => toggleSidebar(true)}
+                        style={tw`w-12 h-12 bg-[#10B981]/10 rounded-lg items-center justify-center`}
+                    >
                         <Ionicons name="menu" size={28} color="#10B981" />
                     </Pressable>
                     <Pressable
