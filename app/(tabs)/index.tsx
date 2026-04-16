@@ -122,7 +122,7 @@ export default function HomeScreen() {
                             </View>
 
                             <Pressable
-                                onPress={() => setFlowState('none')}
+                                onPress={() => router.push("/(pages)/select-transport")}
                                 style={tw`bg-[#10B981] py-4 rounded-xl items-center shadow-lg w-full`}
                             >
                                 <Text style={tw`text-white font-bold text-lg`}>Confirm Location</Text>
