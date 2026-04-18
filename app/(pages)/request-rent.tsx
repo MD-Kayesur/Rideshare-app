@@ -15,7 +15,10 @@ const paymentMethods = [
 export default function RequestRentScreen() {
     const { name } = useLocalSearchParams();
     const [selectedPayment, setSelectedPayment] = useState('1');
-    const [step, setStep] = useState(0); // 0: Details (Date/Time), 1: Charge, 2: Success
+    const [step, setStep] = useState(0); // 0: Details (Date/Time), 1: Charge
+    const [modalStep, setModalStep] = useState<null | 'success' | 'feedback' | 'final'>(null);
+    const [selectedTip, setSelectedTip] = useState('$2');
+    const [rating, setRating] = useState(5);
 
     const carDisplayName = typeof name === 'string' ? name : Array.isArray(name) ? name[0] : 'Mustang Shelby GT';
     const carFirstName = carDisplayName.split(' ')[0];
@@ -37,11 +40,10 @@ export default function RequestRentScreen() {
     const currentImage = vehicleImages[name as string] || vehicleImages['Mustang Shelby GT'];
 
     const handleNextStep = () => {
-        if (step < 2) {
-            setStep(step + 1);
-        } else {
-            router.dismissAll();
-            router.replace('/(tabs)');
+        if (step === 0) {
+            setStep(1);
+        } else if (step === 1) {
+            setModalStep('success');
         }
     };
 
@@ -70,124 +72,95 @@ export default function RequestRentScreen() {
                     )}
                 </View>
 
-                {step === 2 ? (
-                    /* Step 2: Thank You */
-                    <View style={tw`flex-1 items-center justify-center -mt-20 px-10`}>
-                        <View style={tw`w-32 h-32 items-center justify-center mb-10`}>
-                            <MaterialCommunityIcons name="decagram" size={140} color="#E6F7F1" style={tw`absolute`} />
-                            <Ionicons name="checkmark" size={60} color="#10B981" style={tw`z-10`} />
-                        </View>
-                        <Text style={tw`text-3xl font-bold text-gray-800 mb-4`}>Thank you</Text>
-                        <Text style={tw`text-gray-500 text-center text-lg leading-6 mb-10`}>
-                            Your booking has been placed sent to{"\n"}Md. Sharif Ahmed
-                        </Text>
-
-                        <View style={tw`flex-row gap-6`}>
-                            <Pressable
-                                onPress={() => router.push('/(pages)/chat')}
-                                style={tw`w-16 h-16 bg-[#E6F7F1] rounded-full items-center justify-center shadow-sm`}
-                            >
-                                <Ionicons name="chatbubble-ellipses" size={30} color="#10B981" />
-                            </Pressable>
-                            <Pressable
-                                onPress={() => router.push('/(pages)/call')}
-                                style={tw`w-16 h-16 bg-[#E6F7F1] rounded-full items-center justify-center shadow-sm`}
-                            >
-                                <Ionicons name="call" size={30} color="#10B981" />
-                            </Pressable>
-                        </View>
-                    </View>
-                ) : (
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-32 px-6`}>
-                        {/* Route Info */}
-                        {step === 0 && (
-                            <View style={tw`mt-6 mb-8`}>
-                                <View style={tw`flex-row items-start mb-6`}>
-                                    <View style={tw`items-center mr-4 pt-1`}>
-                                        <Ionicons name="location" size={24} color="#EF4444" />
-                                        <View style={tw`w-0.5 h-10 border-l border-dashed border-[#10B981] my-1`} />
-                                    </View>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-32 px-6`}>
+                    {/* Route Info */}
+                    {step === 0 && (
+                        <View style={tw`mt-6 mb-8`}>
+                            <View style={tw`flex-row items-start mb-6`}>
+                                <View style={tw`items-center mr-4 pt-1`}>
+                                    <Ionicons name="location" size={24} color="#EF4444" />
+                                    <View style={tw`w-0.5 h-10 border-l border-dashed border-[#10B981] my-1`} />
+                                </View>
+                                <View>
+                                    <Text style={tw`text-lg font-bold text-gray-800`}>Current location</Text>
+                                    <Text style={tw`text-gray-400 text-sm`}>2972 Westheimer Rd. Santa Ana, Illinois 85486</Text>
+                                </View>
+                            </View>
+                            <View style={tw`flex-row items-start`}>
+                                <View style={tw`items-center mr-4`}>
+                                    <Ionicons name="location" size={24} color="#10B981" />
+                                </View>
+                                <View style={tw`flex-1 flex-row justify-between items-center`}>
                                     <View>
-                                        <Text style={tw`text-lg font-bold text-gray-800`}>Current location</Text>
-                                        <Text style={tw`text-gray-400 text-sm`}>2972 Westheimer Rd. Santa Ana, Illinois 85486</Text>
+                                        <Text style={tw`text-lg font-bold text-gray-800`}>Office</Text>
+                                        <Text style={tw`text-gray-400 text-sm`}>1901 Thornridge Cir. Shiloh, Hawaii 81063</Text>
                                     </View>
-                                </View>
-                                <View style={tw`flex-row items-start`}>
-                                    <View style={tw`items-center mr-4`}>
-                                        <Ionicons name="location" size={24} color="#10B981" />
-                                    </View>
-                                    <View style={tw`flex-1 flex-row justify-between items-center`}>
-                                        <View>
-                                            <Text style={tw`text-lg font-bold text-gray-800`}>Office</Text>
-                                            <Text style={tw`text-gray-400 text-sm`}>1901 Thornridge Cir. Shiloh, Hawaii 81063</Text>
-                                        </View>
-                                        <Text style={tw`text-gray-800 font-bold`}>1.1km</Text>
-                                    </View>
+                                    <Text style={tw`text-gray-800 font-bold`}>1.1km</Text>
                                 </View>
                             </View>
-                        )}
-
-                        {/* Car Summary */}
-                        <View style={tw`${step === 1 ? 'mt-6' : ''} bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-4 flex-row items-center mb-8 shadow-sm`}>
-                            <View style={tw`flex-1`}>
-                                <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{carDisplayName}</Text>
-                                <View style={tw`flex-row items-center`}>
-                                    <Ionicons name="star" size={16} color="#FBBF24" />
-                                    <Text style={tw`ml-1 text-gray-800 font-medium text-xs`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
-                                </View>
-                            </View>
-                            <Image source={currentImage} style={tw`w-24 h-14`} resizeMode="contain" />
                         </View>
+                    )}
 
-                        {step === 0 ? (
-                            /* Step 0: Date & Time Inputs */
-                            <View style={tw`gap-4 mb-8`}>
-                                <View style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4`}>
-                                    <TextInput placeholder="Date" style={tw`text-base text-gray-800`} placeholderTextColor="#D1D5DB" />
-                                </View>
-                                <View style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4`}>
-                                    <TextInput placeholder="Time" style={tw`text-base text-gray-800`} placeholderTextColor="#D1D5DB" />
-                                </View>
+                    {/* Car Summary */}
+                    <View style={tw`${step === 1 ? 'mt-6' : ''} bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-4 flex-row items-center mb-8 shadow-sm`}>
+                        <View style={tw`flex-1`}>
+                            <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{carDisplayName}</Text>
+                            <View style={tw`flex-row items-center`}>
+                                <Ionicons name="star" size={16} color="#FBBF24" />
+                                <Text style={tw`ml-1 text-gray-800 font-medium text-xs`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
                             </View>
-                        ) : (
-                            /* Step 1: Charge Section */
-                            <View style={tw`mt-2 mb-8`}>
-                                <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Charge</Text>
-                                <View style={tw`flex-row justify-between items-center mb-4`}>
-                                    <Text style={tw`text-gray-400 font-medium text-base`}>{carFirstName}/per hours</Text>
-                                    <Text style={tw`text-gray-800 font-bold text-base`}>$200</Text>
-                                </View>
-                                <View style={tw`flex-row justify-between items-center mb-6`}>
-                                    <Text style={tw`text-gray-400 font-medium text-base`}>Vat (5%)</Text>
-                                    <Text style={tw`text-gray-800 font-bold text-base`}>$20</Text>
-                                </View>
-                                <View style={tw`h-[1px] bg-gray-100 mb-6`} />
-                                <View style={tw`flex-row justify-between items-center`}>
-                                    <Text style={tw`text-gray-500 font-bold text-lg`}>Total</Text>
-                                    <Text style={tw`text-gray-800 font-bold text-lg`}>$220</Text>
-                                </View>
-                            </View>
-                        )}
+                        </View>
+                        <Image source={currentImage} style={tw`w-24 h-14`} resizeMode="contain" />
+                    </View>
 
-                        {/* Payment Method */}
-                        <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Select payment method</Text>
-                        {paymentMethods.map((method) => (
-                            <Pressable
-                                key={method.id}
-                                onPress={() => setSelectedPayment(method.id)}
-                                style={tw`flex-row items-center bg-white border ${selectedPayment === method.id ? 'border-[#10B981]' : 'border-gray-100'} rounded-2xl p-5 mb-4 shadow-sm`}
-                            >
-                                <View style={tw`w-12 h-10 items-center justify-center mr-4`}>
-                                    <FontAwesome name={method.icon as any} size={28} color={method.type === 'visa' ? '#1A1F71' : method.type === 'mastercard' ? '#EB001B' : method.type === 'paypal' ? '#0070BA' : '#4B5563'} />
-                                </View>
-                                <View style={tw`flex-1`}>
-                                    <Text style={tw`text-gray-800 font-bold text-base`}>{method.label}</Text>
-                                    <Text style={tw`text-gray-400 text-xs mt-0.5`}>{method.expires}</Text>
-                                </View>
-                            </Pressable>
-                        ))}
-                    </ScrollView>
-                )}
+                    {step === 0 ? (
+                        /* Step 0: Date & Time Inputs */
+                        <View style={tw`gap-4 mb-8`}>
+                            <View style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4`}>
+                                <TextInput placeholder="Date" style={tw`text-base text-gray-800`} placeholderTextColor="#D1D5DB" />
+                            </View>
+                            <View style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4`}>
+                                <TextInput placeholder="Time" style={tw`text-base text-gray-800`} placeholderTextColor="#D1D5DB" />
+                            </View>
+                        </View>
+                    ) : (
+                        /* Step 1: Charge Section */
+                        <View style={tw`mt-2 mb-8`}>
+                            <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Charge</Text>
+                            <View style={tw`flex-row justify-between items-center mb-4`}>
+                                <Text style={tw`text-gray-400 font-medium text-base`}>{carFirstName}/per hours</Text>
+                                <Text style={tw`text-gray-800 font-bold text-base`}>$200</Text>
+                            </View>
+                            <View style={tw`flex-row justify-between items-center mb-6`}>
+                                <Text style={tw`text-gray-400 font-medium text-base`}>Vat (5%)</Text>
+                                <Text style={tw`text-gray-800 font-bold text-base`}>$20</Text>
+                            </View>
+                            <View style={tw`h-[1px] bg-gray-100 mb-6`} />
+                            <View style={tw`flex-row justify-between items-center`}>
+                                <Text style={tw`text-gray-500 font-bold text-lg`}>Total</Text>
+                                <Text style={tw`text-gray-800 font-bold text-lg`}>$220</Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Payment Method */}
+                    <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Select payment method</Text>
+                    {paymentMethods.map((method) => (
+                        <Pressable
+                            key={method.id}
+                            onPress={() => setSelectedPayment(method.id)}
+                            style={tw`flex-row items-center bg-white border ${selectedPayment === method.id ? 'border-[#10B981]' : 'border-gray-100'} rounded-2xl p-5 mb-4 shadow-sm`}
+                        >
+                            <View style={tw`w-12 h-10 items-center justify-center mr-4`}>
+                                <FontAwesome name={method.icon as any} size={28} color={method.type === 'visa' ? '#1A1F71' : method.type === 'mastercard' ? '#EB001B' : method.type === 'paypal' ? '#0070BA' : '#4B5563'} />
+                            </View>
+                            <View style={tw`flex-1`}>
+                                <Text style={tw`text-gray-800 font-bold text-base`}>{method.label}</Text>
+                                <Text style={tw`text-gray-400 text-xs mt-0.5`}>{method.expires}</Text>
+                            </View>
+                        </Pressable>
+                    ))}
+                </ScrollView>
 
                 {/* Bottom Action */}
                 <View style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-6 border-t border-gray-100`}>
@@ -200,6 +173,143 @@ export default function RequestRentScreen() {
                         </Text>
                     </Pressable>
                 </View>
+
+                {/* Modal Overlays */}
+                {modalStep && (
+                    <View style={tw`absolute inset-0 bg-black/50 items-center justify-center z-50 px-6`}>
+                        <View style={tw`bg-white w-full rounded-[32px] p-6 shadow-2xl relative overflow-hidden`}>
+                            {/* Close Icon */}
+                            <Pressable
+                                onPress={() => setModalStep(null)}
+                                style={tw`absolute top-4 right-4 z-10 p-2`}
+                            >
+                                <Ionicons name="close" size={24} color="#9CA3AF" />
+                            </Pressable>
+
+                            {/* Modal Header Icon */}
+                            <View style={tw`items-center mt-4 mb-6`}>
+                                <View style={tw`w-24 h-24 items-center justify-center`}>
+                                    <MaterialCommunityIcons name="decagram" size={100} color="#E6F7F1" style={tw`absolute`} />
+                                    <Ionicons name="checkmark" size={44} color="#10B981" style={tw`z-10`} />
+                                </View>
+                            </View>
+
+                            {modalStep === 'success' && (
+                                <View style={tw`items-center`}>
+                                    <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>Payment Success</Text>
+                                    <Text style={tw`text-gray-400 text-center text-base mb-6`}>
+                                        Your money has been successfully sent to{"\n"}Sergio Ramasis
+                                    </Text>
+                                    <View style={tw`items-center mb-8`}>
+                                        <Text style={tw`text-gray-500 font-bold text-sm mb-1`}>Amount</Text>
+                                        <Text style={tw`text-4xl font-bold text-gray-800`}>$220</Text>
+                                    </View>
+
+                                    <View style={tw`w-full h-[1px] bg-gray-100 border-t border-dashed border-gray-300 mb-6`} />
+
+                                    <Text style={tw`text-gray-800 font-bold text-lg mb-2`}>How is your trip?</Text>
+                                    <Text style={tw`text-gray-400 text-center text-sm mb-6 px-4`}>
+                                        Your feedback will help us to improve your driving experience better
+                                    </Text>
+
+                                    {/* Action row with Chat/Call buttons */}
+                                    <View style={tw`flex-row gap-4 mb-6`}>
+                                        <Pressable
+                                            onPress={() => router.push('/(pages)/chat')}
+                                            style={tw`flex-1 h-14 bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-xl items-center justify-center flex-row gap-2`}
+                                        >
+                                            <Ionicons name="chatbubble-ellipses" size={20} color="#10B981" />
+                                            <Text style={tw`text-[#10B981] font-bold`}>Chat</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            onPress={() => router.push('/(pages)/call')}
+                                            style={tw`flex-1 h-14 bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-xl items-center justify-center flex-row gap-2`}
+                                        >
+                                            <Ionicons name="call" size={20} color="#10B981" />
+                                            <Text style={tw`text-[#10B981] font-bold`}>Call</Text>
+                                        </Pressable>
+                                    </View>
+
+                                    <Pressable
+                                        onPress={() => setModalStep('feedback')}
+                                        style={tw`bg-[#10B981] w-full py-4.5 rounded-2xl items-center mb-2 shadow-md`}
+                                    >
+                                        <Text style={tw`text-white font-bold text-lg`}>Please Feedback</Text>
+                                    </Pressable>
+                                </View>
+                            )}
+
+                            {modalStep === 'feedback' && (
+                                <View style={tw`items-center`}>
+                                    <View style={tw`flex-row gap-3 mb-6`}>
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Pressable key={s} onPress={() => setRating(s)}>
+                                                <Ionicons name="star" size={32} color={s <= rating ? "#FBBF24" : "#D1D5DB"} />
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                    <Text style={tw`text-2xl font-bold text-[#10B981] mb-2`}>Excellent</Text>
+                                    <Text style={tw`text-gray-400 text-center text-sm mb-6`}>
+                                        You rated Sergio Ramasis {rating} star
+                                    </Text>
+
+                                    <TextInput
+                                        placeholder="Write your text"
+                                        placeholderTextColor="#D1D5DB"
+                                        multiline
+                                        style={tw`w-full bg-white border border-gray-100 rounded-2xl px-4 py-4 h-28 text-base text-gray-800 mb-6`}
+                                    />
+
+                                    <Text style={tw`text-gray-700 font-bold text-lg mb-6`}>
+                                        Give some tips to Sergio Ramasis
+                                    </Text>
+
+                                    <View style={tw`flex-row flex-wrap justify-between gap-3 mb-8`}>
+                                        {['$1', '$2', '$5', '$10', '$20'].map((tip) => (
+                                            <Pressable
+                                                key={tip}
+                                                onPress={() => setSelectedTip(tip)}
+                                                style={tw`flex-1 min-w-[17%] aspect-[4/3] bg-white border ${selectedTip === tip ? 'border-[#10B981]' : 'border-gray-100'} rounded-xl items-center justify-center`}
+                                            >
+                                                <Text style={tw`text-lg font-bold ${selectedTip === tip ? 'text-gray-800' : 'text-gray-400'}`}>{tip}</Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
+
+                                    <Pressable style={tw`mb-8`}>
+                                        <Text style={tw`text-[#10B981] font-bold text-base border-b border-[#10B981]`}>Enter other amount</Text>
+                                    </Pressable>
+
+                                    <Pressable
+                                        onPress={() => setModalStep('final')}
+                                        style={tw`bg-[#10B981] w-full py-4.5 rounded-2xl items-center mb-2 shadow-md`}
+                                    >
+                                        <Text style={tw`text-white font-bold text-lg`}>Submit</Text>
+                                    </Pressable>
+                                </View>
+                            )}
+
+                            {modalStep === 'final' && (
+                                <View style={tw`items-center`}>
+                                    <Text style={tw`text-2xl font-bold text-gray-800 mb-4`}>Thank you</Text>
+                                    <Text style={tw`text-gray-400 text-center text-base mb-10 px-4`}>
+                                        Thank you for your valuable feedback and tip
+                                    </Text>
+                                    <Pressable
+                                        onPress={() => {
+                                            setModalStep(null);
+                                            router.dismissAll();
+                                            router.replace('/(tabs)');
+                                        }}
+                                        style={tw`bg-[#10B981] w-full py-4.5 rounded-2xl items-center mb-4 shadow-md`}
+                                    >
+                                        <Text style={tw`text-white font-bold text-lg`}>Back Home</Text>
+                                    </Pressable>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                )}
             </SafeAreaView>
         </View>
     );
