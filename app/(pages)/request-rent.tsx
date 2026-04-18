@@ -64,7 +64,9 @@ export default function RequestRentScreen() {
                         <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
                     </Pressable>
                     {step !== 2 && (
-                        <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>Request for rent</Text>
+                        <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>
+                            {step === 1 ? 'Payment' : 'Request for rent'}
+                        </Text>
                     )}
                 </View>
 
@@ -76,40 +78,57 @@ export default function RequestRentScreen() {
                             <Ionicons name="checkmark" size={60} color="#10B981" style={tw`z-10`} />
                         </View>
                         <Text style={tw`text-3xl font-bold text-gray-800 mb-4`}>Thank you</Text>
-                        <Text style={tw`text-gray-500 text-center text-lg leading-6`}>
+                        <Text style={tw`text-gray-500 text-center text-lg leading-6 mb-10`}>
                             Your booking has been placed sent to{"\n"}Md. Sharif Ahmed
                         </Text>
+
+                        <View style={tw`flex-row gap-6`}>
+                            <Pressable
+                                onPress={() => router.push('/(pages)/chat')}
+                                style={tw`w-16 h-16 bg-[#E6F7F1] rounded-full items-center justify-center shadow-sm`}
+                            >
+                                <Ionicons name="chatbubble-ellipses" size={30} color="#10B981" />
+                            </Pressable>
+                            <Pressable
+                                onPress={() => router.push('/(pages)/call')}
+                                style={tw`w-16 h-16 bg-[#E6F7F1] rounded-full items-center justify-center shadow-sm`}
+                            >
+                                <Ionicons name="call" size={30} color="#10B981" />
+                            </Pressable>
+                        </View>
                     </View>
                 ) : (
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-32 px-6`}>
                         {/* Route Info */}
-                        <View style={tw`mt-6 mb-8`}>
-                            <View style={tw`flex-row items-start mb-6`}>
-                                <View style={tw`items-center mr-4 pt-1`}>
-                                    <Ionicons name="location" size={24} color="#EF4444" />
-                                    <View style={tw`w-0.5 h-10 border-l border-dashed border-[#10B981] my-1`} />
-                                </View>
-                                <View>
-                                    <Text style={tw`text-lg font-bold text-gray-800`}>Current location</Text>
-                                    <Text style={tw`text-gray-400 text-sm`}>2972 Westheimer Rd. Santa Ana, Illinois 85486</Text>
-                                </View>
-                            </View>
-                            <View style={tw`flex-row items-start`}>
-                                <View style={tw`items-center mr-4`}>
-                                    <Ionicons name="location" size={24} color="#10B981" />
-                                </View>
-                                <View style={tw`flex-1 flex-row justify-between items-center`}>
-                                    <View>
-                                        <Text style={tw`text-lg font-bold text-gray-800`}>Office</Text>
-                                        <Text style={tw`text-gray-400 text-sm`}>1901 Thornridge Cir. Shiloh, Hawaii 81063</Text>
+                        {step === 0 && (
+                            <View style={tw`mt-6 mb-8`}>
+                                <View style={tw`flex-row items-start mb-6`}>
+                                    <View style={tw`items-center mr-4 pt-1`}>
+                                        <Ionicons name="location" size={24} color="#EF4444" />
+                                        <View style={tw`w-0.5 h-10 border-l border-dashed border-[#10B981] my-1`} />
                                     </View>
-                                    <Text style={tw`text-gray-800 font-bold`}>1.1km</Text>
+                                    <View>
+                                        <Text style={tw`text-lg font-bold text-gray-800`}>Current location</Text>
+                                        <Text style={tw`text-gray-400 text-sm`}>2972 Westheimer Rd. Santa Ana, Illinois 85486</Text>
+                                    </View>
+                                </View>
+                                <View style={tw`flex-row items-start`}>
+                                    <View style={tw`items-center mr-4`}>
+                                        <Ionicons name="location" size={24} color="#10B981" />
+                                    </View>
+                                    <View style={tw`flex-1 flex-row justify-between items-center`}>
+                                        <View>
+                                            <Text style={tw`text-lg font-bold text-gray-800`}>Office</Text>
+                                            <Text style={tw`text-gray-400 text-sm`}>1901 Thornridge Cir. Shiloh, Hawaii 81063</Text>
+                                        </View>
+                                        <Text style={tw`text-gray-800 font-bold`}>1.1km</Text>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
+                        )}
 
                         {/* Car Summary */}
-                        <View style={tw`bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-4 flex-row items-center mb-8 shadow-sm`}>
+                        <View style={tw`${step === 1 ? 'mt-6' : ''} bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-4 flex-row items-center mb-8 shadow-sm`}>
                             <View style={tw`flex-1`}>
                                 <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{carDisplayName}</Text>
                                 <View style={tw`flex-row items-center`}>
@@ -135,12 +154,17 @@ export default function RequestRentScreen() {
                             <View style={tw`mt-2 mb-8`}>
                                 <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Charge</Text>
                                 <View style={tw`flex-row justify-between items-center mb-4`}>
-                                    <Text style={tw`text-gray-500 font-medium text-lg`}>{carFirstName}/per hours</Text>
-                                    <Text style={tw`text-gray-800 font-bold text-lg`}>$200</Text>
+                                    <Text style={tw`text-gray-400 font-medium text-base`}>{carFirstName}/per hours</Text>
+                                    <Text style={tw`text-gray-800 font-bold text-base`}>$200</Text>
                                 </View>
-                                <View style={tw`flex-row justify-between items-center mb-2`}>
-                                    <Text style={tw`text-gray-500 font-medium text-lg`}>Vat (5%)</Text>
-                                    <Text style={tw`text-gray-800 font-bold text-lg`}>$20</Text>
+                                <View style={tw`flex-row justify-between items-center mb-6`}>
+                                    <Text style={tw`text-gray-400 font-medium text-base`}>Vat (5%)</Text>
+                                    <Text style={tw`text-gray-800 font-bold text-base`}>$20</Text>
+                                </View>
+                                <View style={tw`h-[1px] bg-gray-100 mb-6`} />
+                                <View style={tw`flex-row justify-between items-center`}>
+                                    <Text style={tw`text-gray-500 font-bold text-lg`}>Total</Text>
+                                    <Text style={tw`text-gray-800 font-bold text-lg`}>$220</Text>
                                 </View>
                             </View>
                         )}
