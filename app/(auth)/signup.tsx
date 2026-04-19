@@ -8,9 +8,14 @@ import React, { useState } from "react";
 export default function SignUpScreen() {
     const [agreed, setAgreed] = useState(false);
     const [gender, setGender] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [showGenderModal, setShowGenderModal] = useState(false);
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
+
+    const isFormValid = name.trim() !== "" && email.trim() !== "" && phone.trim() !== "" && agreed;
 
     const genderOptions = ["Male", "Female", "Other"];
     const countries = [
@@ -41,6 +46,8 @@ export default function SignUpScreen() {
                     {/* Name Input */}
                     <TextInput
                         placeholder="Name"
+                        value={name}
+                        onChangeText={setName}
                         style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
                         placeholderTextColor="#ccc"
                     />
@@ -48,6 +55,8 @@ export default function SignUpScreen() {
                     {/* Email Input */}
                     <TextInput
                         placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
                         style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
                         placeholderTextColor="#ccc"
                         keyboardType="email-address"
@@ -66,6 +75,8 @@ export default function SignUpScreen() {
                             <Text style={tw`text-base text-gray-800 mr-2`}>{selectedCountry.code}</Text>
                             <TextInput
                                 placeholder="Your mobile number"
+                                value={phone}
+                                onChangeText={setPhone}
                                 style={tw`flex-1 py-4 text-base`}
                                 placeholderTextColor="#ccc"
                                 keyboardType="phone-pad"
@@ -161,11 +172,11 @@ export default function SignUpScreen() {
 
                     {/* Sign Up Button */}
                     <Pressable
-                        onPress={() => agreed && router.push("/(auth)/verify")}
-                        disabled={!agreed}
-                        style={tw`flex-row items-center justify-center border ${agreed ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
+                        onPress={() => isFormValid && router.push("/(auth)/verify")}
+                        disabled={!isFormValid}
+                        style={tw`flex-row items-center justify-center border ${isFormValid ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
                     >
-                        <Text style={[tw`font-bold text-lg`, agreed ? tw`text-[#10B981]` : tw`text-gray-300`]}>Sign Up</Text>
+                        <Text style={[tw`font-bold text-lg`, isFormValid ? tw`text-[#10B981]` : tw`text-gray-300`]}>Sign Up</Text>
                     </Pressable>
                 </View>
 

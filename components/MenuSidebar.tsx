@@ -58,8 +58,15 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                         {menuItems.map(item => (
                             <Pressable
                                 key={item.id}
-                                onPress={() => { onClose(); router.push(item.route as any); }}
-                                style={tw`flex-row items-center px-10 py-6 border-b border-gray-50`}
+                                onPress={() => {
+                                    onClose();
+                                    if (item.title === 'Logout') {
+                                        router.replace(item.route as any);
+                                    } else {
+                                        router.push(item.route as any);
+                                    }
+                                }}
+                                style={tw`flex-row items-center px-10 py-6 border-b border-gray-100`}
                             >
                                 <Ionicons name={item.icon as any} size={28} color="#374151" />
                                 <Text style={tw`text-xl font-bold text-gray-800 ml-5`}>{item.title}</Text>

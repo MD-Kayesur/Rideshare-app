@@ -29,7 +29,7 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: () => {
             router.dismissAll();
-            router.replace('/(tabs)');
+            router.replace('/(auth)/login');
           }
         }
       ]
