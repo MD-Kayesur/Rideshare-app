@@ -1,10 +1,10 @@
-import { 
-  Pressable, 
-  Text, 
-  View, 
+import {
+  Pressable,
+  Text,
+  View,
   useColorScheme,
   Linking,
-  Alert 
+  Alert
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -46,16 +46,16 @@ export default function whatsapp() {
       isDarkMode ? tw`bg-black` : tw`bg-gray-50`
     ]}>
       <View style={tw`flex-1 px-4`}>
-        
+
         {/* Back Button */}
-        <Pressable 
+        <Pressable
           onPress={() => router.back()}
           style={tw`absolute top-10 left-4 z-10 bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm`}
         >
-          <Ionicons 
-            name="arrow-back" 
-            size={24} 
-            color={isDarkMode ? "white" : "black"} 
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={isDarkMode ? "white" : "black"}
           />
         </Pressable>
 
@@ -80,9 +80,9 @@ export default function whatsapp() {
 
         {/* whatsapp Cards */}
         <View style={tw`gap-4 mb-8`}>
-          
+
           {/* Email Card */}
-          <Pressable 
+          <Pressable
             onPress={handleEmailPress}
             style={[
               tw`flex-row items-center p-5 rounded-2xl`,
@@ -106,7 +106,7 @@ export default function whatsapp() {
           </Pressable>
 
           {/* Phone Card */}
-          <Pressable 
+          <Pressable
             onPress={handlePhonePress}
             style={[
               tw`flex-row items-center p-5 rounded-2xl`,
@@ -151,7 +151,7 @@ export default function whatsapp() {
         </View>
 
         {/* WhatsApp Button */}
-        <Pressable 
+        <Pressable
           onPress={handleWhatsAppPress}
           style={tw`flex-row items-center justify-center bg-green-600 py-4 rounded-xl mb-4`}
         >
@@ -160,7 +160,7 @@ export default function whatsapp() {
         </Pressable>
 
         {/* Send Message Button */}
-        <Pressable 
+        <Pressable
           onPress={handleSendMessage}
           style={({ pressed }) => [
             tw`bg-red-700 py-4 rounded-xl items-center`,
@@ -188,4 +188,3 @@ export default function whatsapp() {
 
 
 
- 
