@@ -77,7 +77,7 @@ export default function SignUpScreen() {
                                 placeholder="Your mobile number"
                                 value={phone}
                                 onChangeText={setPhone}
-                                style={tw`flex-1 py-4 text-base`}
+                                style={tw`flex-1 pb-2 text-base`}
                                 placeholderTextColor="#ccc"
                                 keyboardType="phone-pad"
                             />
