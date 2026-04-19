@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Modal, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Modal, TouchableOpacity, FlatList, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
 import tw from 'twrnc';
 
 const CITY_OPTIONS = ["Dhaka", "Khulna", "Rajshahi", "Barisal", "Sylhet", "Chittagong", "Rangpur", "Mymensingh"];
@@ -13,6 +14,21 @@ export default function ProfileEditScreen() {
     const [selectedDistrict, setSelectedDistrict] = useState("Dhaka");
     const [showCityModal, setShowCityModal] = useState(false);
     const [showDistrictModal, setShowDistrictModal] = useState(false);
+    const [image, setImage] = useState<string | null>(null);
+
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+    };
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -32,10 +48,17 @@ export default function ProfileEditScreen() {
                 {/* Profile Picture */}
                 <View style={tw`items-center mb-10`}>
                     <View style={tw`relative`}>
-                        <View style={tw`w-32 h-32 bg-gray-200 rounded-full items-center justify-center`}>
-                            <Ionicons name="person" size={60} color="#ccc" />
+                        <View style={tw`w-32 h-32 bg-gray-200 rounded-full items-center justify-center overflow-hidden`}>
+                            {image ? (
+                                <Image source={{ uri: image }} style={tw`w-full h-full`} />
+                            ) : (
+                                <Ionicons name="person" size={60} color="#ccc" />
+                            )}
                         </View>
-                        <Pressable style={tw`absolute bottom-0 right-0 bg-[#10B981] p-2 rounded-full border-4 border-white`}>
+                        <Pressable
+                            onPress={pickImage}
+                            style={tw`absolute bottom-0 right-0 bg-[#10B981] p-2 rounded-full border-4 border-white`}
+                        >
                             <Ionicons name="camera" size={20} color="white" />
                         </Pressable>
                     </View>
@@ -116,12 +139,13 @@ export default function ProfileEditScreen() {
                         </Pressable>
                         <Pressable
                             onPress={() => router.push("/(tabs)")}
+                            
                             style={({ pressed }) => [
                                 tw`flex-1 bg-[#10B981] py-4 rounded-xl items-center`,
                                 pressed && tw`opacity-90`
                             ]}
                         >
-                            <Text style={tw`text-white font-bold text-lg`}>Save</Text>
+                            <Text style={tw`text-black font-bold text-lg`}>Save</Text>
                         </Pressable>
                     </View>
                 </View>
