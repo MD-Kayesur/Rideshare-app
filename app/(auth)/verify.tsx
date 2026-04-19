@@ -76,12 +76,16 @@ export default function PhoneVerificationScreen() {
                 {/* Verify Button */}
                 <Pressable
                     onPress={() => router.push("/(auth)/password")}
-                    style={({ pressed }) => [
-                        tw`bg-[#10B981] py-4 rounded-xl items-center mb-10`,
-                        pressed && tw`opacity-90`
+                    style={[
+                        tw`flex-row items-center justify-center border py-3 rounded-xl gap-3`,
+                        tw`border-[#10B981] bg-white`
                     ]}
+                // style={({ pressed }) => [
+                //     tw`bg-[#10B981] py-4 rounded-xl items-center mb-10`,
+                //     pressed && tw`opacity-90`
+                // ]}
                 >
-                    <Text style={tw`text-white font-bold text-lg`}>Verify</Text>
+                    <Text style={tw`text-black font-bold text-lg`}>Verify</Text>
                 </Pressable>
             </KeyboardAvoidingView>
         </SafeAreaView>

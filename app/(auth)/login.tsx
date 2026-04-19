@@ -7,6 +7,10 @@ import React, { useState } from "react";
 
 export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+
+    const isFormValid = identifier.trim() !== "" && password.trim() !== "";
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -21,6 +25,10 @@ export default function LoginScreen() {
             </View>
 
             <ScrollView style={tw`flex-1 px-8 pt-8`} showsVerticalScrollIndicator={false}>
+                <Text style={[tw`font-black text-[#10B981] text-center mb-10`, { fontSize: 50 }]}>
+                    Rideshare
+                </Text>
+
                 <Text style={tw`text-2xl font-bold text-gray-800 mb-8`}>
                     Sign in with your email or phone number
                 </Text>
@@ -29,6 +37,8 @@ export default function LoginScreen() {
                     {/* Email/Phone Input */}
                     <TextInput
                         placeholder="Email or Phone Number"
+                        value={identifier}
+                        onChangeText={setIdentifier}
                         style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
                         placeholderTextColor="#ccc"
                     />
@@ -37,6 +47,8 @@ export default function LoginScreen() {
                     <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white px-4`}>
                         <TextInput
                             placeholder="Enter Your Password"
+                            value={password}
+                            onChangeText={setPassword}
                             secureTextEntry={!showPassword}
                             style={tw`flex-1 py-4 text-base`}
                             placeholderTextColor="#ccc"
@@ -52,11 +64,14 @@ export default function LoginScreen() {
 
                     {/* Login Button */}
                     <Pressable
-                        onPress={() => router.push("/(tabs)")}
-                         style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
-                      
+                        onPress={() => isFormValid && router.push("/(tabs)")}
+                        disabled={!isFormValid}
+                        style={[
+                            tw`flex-row items-center justify-center border py-3 rounded-xl gap-3`,
+                            isFormValid ? tw`border-[#10B981] bg-white` : tw`border-gray-200 bg-gray-50`
+                        ]}
                     >
-                        <Text style={tw`text-black font-bold text-lg`}>Login</Text>
+                        <Text style={[tw`font-bold text-lg`, isFormValid ? tw`text-[#10B981]` : tw`text-gray-300`]}>Login</Text>
                     </Pressable>
                 </View>
 
