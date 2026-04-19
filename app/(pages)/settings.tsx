@@ -7,11 +7,11 @@ import tw from 'twrnc';
 
 export default function SettingsScreen() {
     const settingsItems = [
-        { id: '1', title: 'Change Password', route: '/(auth)/password' },
-        { id: '2', title: 'Change Language', route: '#' },
-        { id: '3', title: 'Privacy Policy', route: '#' },
-        { id: '4', title: 'Contact Us', route: '/(tabs)/contact' },
-        { id: '5', title: 'Delete Account', route: '#' },
+        { id: '1', title: 'Change Password', route: '/(pages)/change-password' },
+        { id: '2', title: 'Change Language', route: '/(pages)/change-language' },
+        { id: '3', title: 'Privacy Policy', route: '/(pages)/privacy-policy' },
+        { id: '4', title: 'Contact Us', route: '/(pages)/contact-us' },
+        { id: '5', title: 'Delete Account', route: '/(pages)/delete-account' },
     ];
 
     return (
