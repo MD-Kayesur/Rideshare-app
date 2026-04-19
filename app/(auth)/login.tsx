@@ -25,6 +25,10 @@ export default function LoginScreen() {
             </View>
 
             <ScrollView style={tw`flex-1 px-8 pt-8`} showsVerticalScrollIndicator={false}>
+                <Text style={[tw`font-black text-[#10B981] text-center mb-10`, { fontSize: 50 }]}>
+                    Rideshare
+                </Text>
+
                 <Text style={tw`text-2xl font-bold text-gray-800 mb-8`}>
                     Sign in with your email or phone number
                 </Text>
