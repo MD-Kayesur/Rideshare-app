@@ -28,11 +28,11 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="workout/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="workout/[id]" />
+        <Stack.Screen name="+not-found" options={{ headerShown: true }} />
       </Stack>
     </Provider>
   );

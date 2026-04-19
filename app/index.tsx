@@ -64,7 +64,7 @@ export default function LandingPage() {
   };
 
   return (
-    <SafeScreen>
+    <SafeScreen >
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
       <View style={tw`flex-1 bg-white relative`}>
