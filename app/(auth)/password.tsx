@@ -63,12 +63,12 @@ export default function SetPasswordScreen() {
                     {/* Register Button */}
                     <Pressable
                         onPress={() => router.push("/(auth)/profile")}
-                        style={({ pressed }) => [
-                            tw`bg-[#10B981] py-4 rounded-xl items-center mt-8`,
-                            pressed && tw`opacity-90`
+                        style={[
+                            tw`flex-row items-center justify-center border py-3 rounded-xl gap-3`,
+                            tw`border-[#10B981] bg-white`
                         ]}
                     >
-                        <Text style={tw`text-white font-bold text-lg`}>Register</Text>
+                        <Text style={tw`text-black font-bold text-lg`}>Register</Text>
                     </Pressable>
                 </View>
             </ScrollView>
