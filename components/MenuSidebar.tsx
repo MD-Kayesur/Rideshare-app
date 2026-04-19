@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView, Image, Animated, SafeAreaView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Pressable, ScrollView, Image, Animated, SafeAreaView, Dimensions } from "react-native";
+import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import tw from 'twrnc';
 
@@ -10,50 +10,67 @@ interface MenuSidebarProps {
     animValue: Animated.Value;
 }
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
     const menuItems = [
-        { id: '1', title: 'History', icon: 'list-outline', route: '/(pages)/history' },
-        { id: '2', title: 'Complain', icon: 'chatbubble-outline', route: '/(pages)/complain' },
-        { id: '3', title: 'Referral', icon: 'people-outline', route: '/(pages)/referral' },
-        { id: '4', title: 'About Us', icon: 'information-circle-outline', route: '/(pages)/about' },
-        { id: '5', title: 'Settings', icon: 'settings-outline', route: '/(pages)/settings' },
-        { id: '6', title: 'Help and Support', icon: 'help-circle-outline', route: '/(pages)/help' },
-        { id: '7', title: 'Logout', icon: 'log-out-outline', route: '/(auth)/login' },
+        { id: '1', title: 'History', icon: 'file-text', provider: 'Octicons', route: '/(pages)/history' },
+        { id: '2', title: 'Complain', icon: 'chatbubble-ellipses-outline', provider: 'Ionicons', route: '/(pages)/complain' },
+        { id: '3', title: 'Referral', icon: 'account-group-outline', provider: 'MaterialCommunityIcons', route: '/(pages)/referral' },
+        { id: '4', title: 'About Us', icon: 'info', provider: 'Octicons', route: '/(pages)/about' },
+        { id: '5', title: 'Settings', icon: 'settings-outline', provider: 'Ionicons', route: '/(pages)/settings' },
+        { id: '6', title: 'Help and Support', icon: 'help-circle-outline', provider: 'Ionicons', route: '/(pages)/help' },
+        { id: '7', title: 'Logout', icon: 'logout', provider: 'MaterialCommunityIcons', route: '/(auth)/login' },
     ];
+
+    const renderIcon = (item: any) => {
+        if (item.provider === 'Octicons') {
+            return <Octicons name={item.icon as any} size={22} color="#374151" />;
+        }
+        if (item.provider === 'MaterialCommunityIcons') {
+            return <MaterialCommunityIcons name={item.icon as any} size={24} color="#374151" />;
+        }
+        return <Ionicons name={item.icon as any} size={24} color="#374151" />;
+    };
 
     if (!isOpen) return null;
 
     return (
         <>
             <Pressable
-                style={[tw`absolute inset-0 bg-black/40 z-[9998]`]}
+                style={[tw`absolute inset-0 bg-black/30 z-[9998]`]}
                 onPress={onClose}
             />
             <Animated.View
                 style={[
-                    tw`absolute top-0 bottom-0 left-0 w-85 bg-white z-[9999] shadow-2xl`,
+                    tw`absolute top-0 bottom-0 left-0 w-80 bg-white z-[9999] shadow-2xl`,
                     {
                         transform: [{ translateX: animValue }],
-                        borderTopRightRadius: 180,
+                        borderTopRightRadius: 150,
+                        borderBottomRightRadius: 150,
                     }
                 ]}
             >
                 <SafeAreaView style={tw`flex-1`}>
-                    <View style={tw`px-8 pt-6 pb-8`}>
+                    <View style={tw`px-10 pt-10 pb-8`}>
                         <Pressable onPress={onClose} style={tw`flex-row items-center mb-10`}>
                             <Ionicons name="chevron-back" size={28} color="#333" />
-                            <Text style={tw`text-xl font-medium text-gray-800 ml-1`}>Back</Text>
+                            <Text style={tw`text-xl text-gray-800 ml-1`}>Back</Text>
                         </Pressable>
-                        <View style={tw`bg-[#D1FAE5] w-24 h-24 rounded-full p-1 items-center justify-center overflow-hidden mb-6 border border-[#10B981]`}>
-                            <Image
-                                source={{ uri: 'https://images.unsplash.com/photo-1540560714873-45f69ee7333a?auto=format&fit=crop&w=200&h=200&q=80' }}
-                                style={tw`w-full h-full rounded-full`}
-                                resizeMode="cover"
-                            />
+
+                        <View style={tw`mb-8`}>
+                            <View style={tw`w-28 h-28 rounded-full items-center justify-center overflow-hidden mb-4 border-2 border-[#10B981]/20 p-1`}>
+                                <Image
+                                    source={{ uri: 'https://api.dicebear.com/7.x/avataaars/png?seed=Nate' }}
+                                    style={tw`w-full h-full rounded-full bg-[#E0F2FE]`}
+                                    resizeMode="cover"
+                                />
+                            </View>
+                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Nate Samson</Text>
+                            <Text style={tw`text-base text-gray-500`}>nate@email.com</Text>
                         </View>
-                        <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Nate Samson</Text>
-                        <Text style={tw`text-base text-gray-500`}>nate@email.com</Text>
                     </View>
+
                     <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
                         {menuItems.map(item => (
                             <Pressable
@@ -66,10 +83,12 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                         router.push(item.route as any);
                                     }
                                 }}
-                                style={tw`flex-row items-center px-10 py-6 border-b border-gray-100`}
+                                style={tw`flex-row items-center px-10 py-3 border-b border-gray-50`}
                             >
-                                <Ionicons name={item.icon as any} size={28} color="#374151" />
-                                <Text style={tw`text-xl font-bold text-gray-800 ml-5`}>{item.title}</Text>
+                                <View style={tw`w-8 items-center`}>
+                                    {renderIcon(item)}
+                                </View>
+                                <Text style={tw`text-lg font-medium text-gray-800 ml-4`}>{item.title}</Text>
                             </Pressable>
                         ))}
                     </ScrollView>
