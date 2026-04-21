@@ -61,13 +61,13 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                         <View style={tw`mb-8`}>
                             <View style={tw`w-28 h-28 rounded-full items-center justify-center overflow-hidden mb-4 border-2 border-[#10B981]/20 p-1`}>
                                 <Image
-                                    source={{ uri: 'https://api.dicebear.com/7.x/avataaars/png?seed=Nate' }}
+                                    source={require("../assets/images/image.png")}
                                     style={tw`w-full h-full rounded-full bg-[#E0F2FE]`}
                                     resizeMode="cover"
                                 />
                             </View>
-                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Nate Samson</Text>
-                            <Text style={tw`text-base text-gray-500`}>nate@email.com</Text>
+                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>MD Kayesur Rahman</Text>
+                            <Text style={tw`text-base text-gray-500`}>kayesur@gmail.com</Text>
                         </View>
                     </View>
 

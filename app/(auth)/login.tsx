@@ -10,7 +10,7 @@ export default function LoginScreen() {
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
 
-    const isFormValid = identifier.trim() !== "" && password.trim() !== "";
+    const isFormValid = identifier.includes("@") && password.trim() !== "";
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -30,17 +30,19 @@ export default function LoginScreen() {
                 </Text>
 
                 <Text style={tw`text-2xl font-bold text-gray-800 mb-8`}>
-                    Sign in with your email or phone number
+                    Sign in with your email
                 </Text>
 
                 <View style={tw`gap-5`}>
                     {/* Email/Phone Input */}
                     <TextInput
-                        placeholder="Email or Phone Number"
+                        placeholder="Email"
                         value={identifier}
                         onChangeText={setIdentifier}
                         style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
                         placeholderTextColor="#ccc"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
                     />
 
                     {/* Password Input */}

@@ -6,10 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
 
 const transportationModes = [
-    { id: '1', name: 'Car', image: require('../../assets/images/Car.png') },
-    { id: '2', name: 'Bike', image: require('../../assets/images/Bike.png') },
-    { id: '3', name: 'Cycle', image: require('../../assets/images/Cycle.png') },
-    { id: '4', name: 'Taxi', image: require('../../assets/images/Taxi.png') },
+    { id: '1', name: 'Car', image: require('../../assets/images/car.png') },
+    { id: '2', name: 'Bike', image: require('../../assets/images/bike.png') },
+    { id: '3', name: 'Cycle', image: require('../../assets/images/cycle.png') },
+    { id: '4', name: 'Taxi', image: require('../../assets/images/taxi.png') },
 ];
 
 export default function SelectTransportScreen() {
@@ -17,14 +17,13 @@ export default function SelectTransportScreen() {
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
             <SafeAreaView style={tw`flex-1 px-6`}>
-                {/* Header */}
                 <View style={tw`flex-row items-center justify-between py-4`}>
                     <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
                         <Ionicons name="chevron-back" size={24} color="#374151" />
                         <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
                     </Pressable>
                     <Text style={tw`text-xl font-bold text-gray-800`}>Select transport</Text>
-                    <View style={tw`w-10`} /> {/* Spacer */}
+                    <View style={tw`w-10`} />
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
