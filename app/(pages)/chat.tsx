@@ -25,8 +25,19 @@ export default function ChatScreen() {
                 time: 'Just now',
                 type: 'sent',
             };
-            setMessages([...messages, newMessage]);
+            setMessages(prev => [...prev, newMessage]);
             setInputText('');
+
+            // Automatic reply simulation
+            setTimeout(() => {
+                const replyMessage = {
+                    id: (Date.now() + 1).toString(),
+                    text: 'Thank you for your message! Our support team will get back to you shortly.',
+                    time: 'Just now',
+                    type: 'received',
+                };
+                setMessages(prev => [...prev, replyMessage]);
+            }, 1500);
         }
     };
 
