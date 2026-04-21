@@ -17,14 +17,13 @@ export default function SelectTransportScreen() {
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
             <SafeAreaView style={tw`flex-1 px-6`}>
-                {/* Header */}
                 <View style={tw`flex-row items-center justify-between py-4`}>
                     <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
                         <Ionicons name="chevron-back" size={24} color="#374151" />
                         <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
                     </Pressable>
                     <Text style={tw`text-xl font-bold text-gray-800`}>Select transport</Text>
-                    <View style={tw`w-10`} /> {/* Spacer */}
+                    <View style={tw`w-10`} />
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
