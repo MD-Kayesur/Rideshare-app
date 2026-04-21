@@ -15,7 +15,7 @@ export default function SignUpScreen() {
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
 
-    const isFormValid = name.trim() !== "" && email.trim() !== "" && phone.trim() !== "" && agreed;
+    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && agreed;
 
     const genderOptions = ["Male", "Female", "Other"];
     const countries = [
@@ -60,6 +60,7 @@ export default function SignUpScreen() {
                         style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
                         placeholderTextColor="#ccc"
                         keyboardType="email-address"
+                        autoCapitalize="none"
                     />
 
                     {/* Phone Input with Country Code */}
