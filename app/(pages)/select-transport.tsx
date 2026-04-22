@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, Pressable, Image, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
 
 const transportationModes = [
-    { id: '1', name: 'Car', image: require('../../assets/images/car.png') },
-    { id: '2', name: 'Bike', image: require('../../assets/images/bike.png') },
-    { id: '3', name: 'Cycle', image: require('../../assets/images/cycle.png') },
-    { id: '4', name: 'Taxi', image: require('../../assets/images/taxi.png') },
+    { id: '1', name: 'Car', icon: 'car' },
+    { id: '2', name: 'Bike', icon: 'motorbike' },
+    { id: '3', name: 'Cycle', icon: 'bicycle' },
+    { id: '4', name: 'Taxi', icon: 'taxi' },
 ];
 
 export default function SelectTransportScreen() {
@@ -39,12 +39,13 @@ export default function SelectTransportScreen() {
                                     pathname: '/(pages)/available-cars',
                                     params: { transportType: mode.name }
                                 })}
-                                style={tw`w-[47%] bg-[#E6F7F1]/50 border border-[#10B981]/20 rounded-2xl p-6 mb-6 items-center`}
+                                style={tw`w-[47%] bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-6 mb-6 items-center`}
                             >
-                                <Image
-                                    source={mode.image}
-                                    style={tw`w-24 h-24 mb-4`}
-                                    resizeMode="contain"
+                                <MaterialCommunityIcons 
+                                    name={mode.icon as any} 
+                                    size={60} 
+                                    color="#10B981" 
+                                    style={tw`mb-4`}
                                 />
                                 <Text style={tw`text-xl font-bold text-gray-700`}>{mode.name}</Text>
                             </Pressable>
