@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Image, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -7,6 +7,7 @@ import tw from 'twrnc';
 
 export default function CarDetailsScreen() {
     const { carId, name } = useLocalSearchParams();
+    const [currentIdx, setCurrentIdx] = useState(0);
 
     const specs = [
         { icon: 'lightning-bolt', label: 'Max. power', value: '2500hp' },
@@ -23,21 +24,21 @@ export default function CarDetailsScreen() {
         { label: 'Gear type', value: 'Automatic' },
     ];
 
-    // Map car name or type to images
-    const vehicleImages: any = {
-        'BMW Cabrio': require('../../assets/images/bmw_cabrio.png'),
-        'Mustang Shelby GT': require('../../assets/images/mustang.png'),
-        'BMW i8': require('../../assets/images/bmw_i8.png'),
-        'Jaguar Silber': require('../../assets/images/jaguar.png'),
-        'Yellow Cab NYC': require('../../assets/images/taxi_render.png'),
-        'Executive Taxi': require('../../assets/images/taxi_render.png'),
-        'Yamaha R1M': require('../../assets/images/motorcycle_render.png'),
-        'Scooter Pro': require('../../assets/images/motorcycle_render.png'),
-        'City Hybrid': require('../../assets/images/bicycle_render.png'),
-        'Electric Cycle': require('../../assets/images/bicycle_render.png'),
+    // List of images for the gallery
+    const images = [
+        require('../../assets/images/car_transparent.png'),
+        require('../../assets/images/taxi_transparent.png'),
+        require('../../assets/images/bike_transparent.png'),
+        require('../../assets/images/cycle_transparent.png'),
+    ];
+
+    const handleNext = () => {
+        setCurrentIdx((prev) => (prev + 1) % images.length);
     };
 
-    const currentImage = vehicleImages[name as string] || vehicleImages['Mustang Shelby GT'];
+    const handlePrev = () => {
+        setCurrentIdx((prev) => (prev - 1 + images.length) % images.length);
+    };
 
     return (
         <View style={tw`flex-1 bg-white`}>
@@ -60,15 +61,15 @@ export default function CarDetailsScreen() {
 
                     {/* Car Gallery */}
                     <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
-                        <Pressable style={tw`p-2`}>
+                        <Pressable onPress={handlePrev} style={tw`p-2`}>
                             <Ionicons name="chevron-back" size={24} color="#374151" />
                         </Pressable>
                         <Image
-                            source={currentImage}
+                            source={images[currentIdx]}
                             style={tw`w-72 h-44`}
                             resizeMode="contain"
                         />
-                        <Pressable style={tw`p-2`}>
+                        <Pressable onPress={handleNext} style={tw`p-2`}>
                             <Ionicons name="chevron-forward" size={24} color="#374151" />
                         </Pressable>
                     </View>
