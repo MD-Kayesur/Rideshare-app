@@ -201,13 +201,19 @@ export default function HomeScreen() {
                         {/* Transport/Delivery Toggle */}
                         <View style={tw`flex-row bg-[#F3F4F6] rounded-xl p-1`}>
                             <Pressable
-                                onPress={() => setMode('transport')}
+                                onPress={() => {
+                                    setMode('transport');
+                                    router.push("/(pages)/select-transport");
+                                }}
                                 style={tw`flex-1 py-4 rounded-lg items-center ${mode === 'transport' ? 'bg-[#10B981]' : ''}`}
                             >
                                 <Text style={tw`font-bold text-lg ${mode === 'transport' ? 'text-white' : 'text-gray-500'}`}>Transport</Text>
                             </Pressable>
                             <Pressable
-                                onPress={() => setMode('delivery')}
+                                onPress={() => {
+                                    setMode('delivery');
+                                    router.push("/(pages)/location");
+                                }}
                                 style={tw`flex-1 py-4 rounded-lg items-center ${mode === 'delivery' ? 'bg-[#10B981]' : ''}`}
                             >
                                 <Text style={tw`font-bold text-lg ${mode === 'delivery' ? 'text-white' : 'text-gray-500'}`}>Delivery</Text>
