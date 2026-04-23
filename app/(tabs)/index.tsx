@@ -122,7 +122,10 @@ export default function HomeScreen() {
                             </View>
 
                             <Pressable
-                                onPress={() => router.push("/(pages)/select-transport")}
+                                onPress={() => router.push({
+                                    pathname: "/(pages)/select-transport",
+                                    params: { mode: mode }
+                                })}
                                 style={tw`bg-[#10B981] py-4 rounded-xl items-center shadow-lg w-full`}
                             >
                                 <Text style={tw`text-white font-bold text-lg`}>Confirm Location</Text>
@@ -201,19 +204,13 @@ export default function HomeScreen() {
                         {/* Transport/Delivery Toggle */}
                         <View style={tw`flex-row bg-[#F3F4F6] rounded-xl p-1`}>
                             <Pressable
-                                onPress={() => {
-                                    setMode('transport');
-                                    router.push("/(pages)/select-transport");
-                                }}
+                                onPress={() => setMode('transport')}
                                 style={tw`flex-1 py-4 rounded-lg items-center ${mode === 'transport' ? 'bg-[#10B981]' : ''}`}
                             >
                                 <Text style={tw`font-bold text-lg ${mode === 'transport' ? 'text-white' : 'text-gray-500'}`}>Transport</Text>
                             </Pressable>
                             <Pressable
-                                onPress={() => {
-                                    setMode('delivery');
-                                    router.push("/(pages)/location");
-                                }}
+                                onPress={() => setMode('delivery')}
                                 style={tw`flex-1 py-4 rounded-lg items-center ${mode === 'delivery' ? 'bg-[#10B981]' : ''}`}
                             >
                                 <Text style={tw`font-bold text-lg ${mode === 'delivery' ? 'text-white' : 'text-gray-500'}`}>Delivery</Text>
