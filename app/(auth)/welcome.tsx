@@ -13,7 +13,7 @@ export default function WelcomeScreen() {
                 <View style={tw`flex-1 items-center justify-center`}>
                     <View style={tw`mb-12`}>
                         <Image
-                            source={require('../../assets/images/welcome_screen.png')}
+                            source={require('../../assets/images/Welcome_Screen.png')}
                             style={{ width: 350, height: 280 }}
                             resizeMode="contain"
                         />

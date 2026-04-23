@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, Image, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
+import { transportData } from './available-cars';
 
 export default function CarDetailsScreen() {
-    const { carId, name } = useLocalSearchParams();
-    const [currentIdx, setCurrentIdx] = useState(0);
+    const { carId, name, transportType } = useLocalSearchParams();
+    const currentCategory = (transportType as string) || 'Car';
+    const vehicles = transportData[currentCategory] || [];
+    
+    // Find the specific vehicle selected
+    const vehicle = vehicles.find(v => v.id === carId) || { name: name, image: null };
 
     const specs = [
         { icon: 'lightning-bolt', label: 'Max. power', value: '2500hp' },
@@ -24,22 +29,6 @@ export default function CarDetailsScreen() {
         { label: 'Gear type', value: 'Automatic' },
     ];
 
-    // List of images for the gallery
-    const images = [
-        require('../../assets/images/car_transparent.png'),
-        require('../../assets/images/taxi_transparent.png'),
-        require('../../assets/images/bike_transparent.png'),
-        require('../../assets/images/cycle_transparent.png'),
-    ];
-
-    const handleNext = () => {
-        setCurrentIdx((prev) => (prev + 1) % images.length);
-    };
-
-    const handlePrev = () => {
-        setCurrentIdx((prev) => (prev - 1 + images.length) % images.length);
-    };
-
     return (
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
@@ -52,26 +41,20 @@ export default function CarDetailsScreen() {
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-32 px-6`}>
                     <View style={tw`mt-4`}>
-                        <Text style={tw`text-3xl font-bold text-gray-800`}>{name || 'Mustang Shelby GT'}</Text>
+                        <Text style={tw`text-3xl font-bold text-gray-800`}>{vehicle.name}</Text>
                         <View style={tw`flex-row items-center mt-2`}>
                             <Ionicons name="star" size={18} color="#FBBF24" />
                             <Text style={tw`ml-1 text-gray-800 font-medium`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
                         </View>
                     </View>
 
-                    {/* Car Gallery */}
-                    <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
-                        <Pressable onPress={handlePrev} style={tw`p-2`}>
-                            <Ionicons name="chevron-back" size={24} color="#374151" />
-                        </Pressable>
+                    {/* Vehicle Image - Gallery Arrows Removed */}
+                    <View style={tw`items-center justify-center mt-8 mb-4`}>
                         <Image
-                            source={images[currentIdx]}
+                            source={vehicle.image}
                             style={tw`w-72 h-44`}
                             resizeMode="contain"
                         />
-                        <Pressable onPress={handleNext} style={tw`p-2`}>
-                            <Ionicons name="chevron-forward" size={24} color="#374151" />
-                        </Pressable>
                     </View>
 
                     {/* Specifications */}
@@ -106,7 +89,7 @@ export default function CarDetailsScreen() {
                     <Pressable
                         onPress={() => router.push({
                             pathname: '/(pages)/request-rent',
-                            params: { name: name }
+                            params: { name: vehicle.name }
                         })}
                         style={tw`flex-1 bg-[#10B981] py-4 rounded-xl items-center shadow-md`}
                     >

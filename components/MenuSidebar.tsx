@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView, Image, Animated, SafeAreaView, Dimensions } from "react-native";
+import { View, Text, Pressable, ScrollView, Image, Animated, Dimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import tw from 'twrnc';
@@ -14,7 +15,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
     const menuItems = [
-        { id: '1', title: 'History', icon: 'file-text', provider: 'Octicons', route: '/(pages)/history' },
+        { id: '1', title: 'History', icon: 'file', provider: 'Octicons', route: '/(pages)/history' },
         { id: '2', title: 'Complain', icon: 'chatbubble-ellipses-outline', provider: 'Ionicons', route: '/(pages)/complain' },
         { id: '3', title: 'Referral', icon: 'account-group-outline', provider: 'MaterialCommunityIcons', route: '/(pages)/referral' },
         { id: '4', title: 'About Us', icon: 'info', provider: 'Octicons', route: '/(pages)/about' },
@@ -38,12 +39,12 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
     return (
         <>
             <Pressable
-                style={[tw`absolute inset-0 bg-black/30 z-[9998]`]}
+                style={[tw`absolute inset-0 bg-black/40 z-40`]}
                 onPress={onClose}
             />
             <Animated.View
                 style={[
-                    tw`absolute top-0 bottom-0 left-0 w-80 bg-white z-[9999] shadow-2xl`,
+                    tw`absolute top-0 bottom-0 left-0 w-80 bg-white z-50 shadow-2xl`,
                     {
                         transform: [{ translateX: animValue }],
                         borderTopRightRadius: 150,
@@ -55,7 +56,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                     <View style={tw`px-10 pt-10 pb-8`}>
                         <Pressable onPress={onClose} style={tw`flex-row items-center mb-10`}>
                             <Ionicons name="chevron-back" size={28} color="#333" />
-                            <Text style={tw`text-xl text-gray-800 ml-1`}>Back</Text>
+                            <Text style={tw`text-xl text-gray-800 ml-1 font-medium`}>Back</Text>
                         </Pressable>
 
                         <View style={tw`mb-8`}>
