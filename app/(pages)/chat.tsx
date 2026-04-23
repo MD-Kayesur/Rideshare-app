@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, Image, TextInput, ScrollView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -16,6 +16,14 @@ const initialMessages = [
 export default function ChatScreen() {
     const [messages, setMessages] = useState(initialMessages);
     const [inputText, setInputText] = useState('');
+    const scrollRef = useRef<ScrollView>(null);
+
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        setTimeout(() => {
+            scrollRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+    }, [messages]);
 
     const handleSend = () => {
         if (inputText.trim()) {
@@ -44,70 +52,73 @@ export default function ChatScreen() {
     return (
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView style={tw`flex-1`}>
-                {/* Header */}
-                <View style={tw`flex-row items-center px-6 py-4 border-b border-gray-50`}>
-                    <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
-                        <Ionicons name="chevron-back" size={24} color="#374151" />
-                        <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
-                    </Pressable>
-                    <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>Chat</Text>
-                </View>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+                style={tw`flex-1`}
+            >
+                <SafeAreaView style={tw`flex-1`}>
+                    {/* Header */}
+                    <View style={tw`flex-row items-center px-6 py-4 border-b border-gray-50`}>
+                        <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
+                            <Ionicons name="chevron-back" size={24} color="#374151" />
+                            <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
+                        </Pressable>
+                        <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>Chat</Text>
+                    </View>
 
-                {/* Chat Content */}
-                <ScrollView
-                    style={tw`flex-1 px-6 pt-6`}
-                    contentContainerStyle={tw`pb-24`}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {messages.map((msg: any) => (
-                        <View key={msg.id} style={tw`mb-6`}>
-                            <View style={tw`flex-row ${msg.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
-                                {msg.type === 'received' && (
-                                    <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
-                                        <Image source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=Sergio' }} style={tw`w-full h-full`} />
+                    {/* Chat Content */}
+                    <ScrollView
+                        ref={scrollRef}
+                        style={tw`flex-1 px-6 pt-6`}
+                        contentContainerStyle={tw`pb-6`}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        {messages.map((msg: any) => (
+                            <View key={msg.id} style={tw`mb-6`}>
+                                <View style={tw`flex-row ${msg.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
+                                    {msg.type === 'received' && (
+                                        <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
+                                            <Image source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=Sergio' }} style={tw`w-full h-full`} />
+                                        </View>
+                                    )}
+                                    <View style={tw`max-w-[80%]`}>
+                                        <View style={tw`px-4 py-3 rounded-2xl ${msg.type === 'sent' ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
+                                            <Text style={tw`text-gray-700 text-base leading-5`}>{msg.text}</Text>
+                                        </View>
+                                        <Text style={tw`text-gray-400 text-xs mt-1 ${msg.type === 'sent' ? 'text-right' : 'text-left'}`}>
+                                            {msg.time}
+                                        </Text>
                                     </View>
-                                )}
-                                <View style={tw`max-w-[80%]`}>
-                                    <View style={tw`px-4 py-3 rounded-2xl ${msg.type === 'sent' ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
-                                        <Text style={tw`text-gray-700 text-base leading-5`}>{msg.text}</Text>
-                                    </View>
-                                    <Text style={tw`text-gray-400 text-xs mt-1 ${msg.type === 'sent' ? 'text-right' : 'text-left'}`}>
-                                        {msg.time}
-                                    </Text>
                                 </View>
                             </View>
-                        </View>
-                    ))}
-                </ScrollView>
+                        ))}
+                    </ScrollView>
 
-                {/* Input Bar */}
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    keyboardVerticalOffset={0}
-                    style={tw`absolute bottom-0 left-0 right-0 bg-white px-4 py-4 border-t border-gray-100`}
-                >
-                    <View style={tw`flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 py-2`}>
-                        <Pressable style={tw`p-2`}>
-                            <Ionicons name="add-circle-outline" size={28} color="#9CA3AF" />
-                        </Pressable>
-                        <TextInput
-                            placeholder="Type your message"
-                            style={tw`flex-1 text-base text-gray-800 px-2`}
-                            placeholderTextColor="#9CA3AF"
-                            value={inputText}
-                            onChangeText={setInputText}
-                            onSubmitEditing={handleSend}
-                        />
-                        <Pressable style={tw`p-2`}>
-                            <Ionicons name="happy-outline" size={24} color="#9CA3AF" />
-                        </Pressable>
-                        <Pressable onPress={handleSend} style={tw`p-2`}>
-                            <Ionicons name="paper-plane" size={24} color="#9CA3AF" />
-                        </Pressable>
+                    {/* Input Bar */}
+                    <View style={tw`bg-white px-4 py-4 border-t border-gray-100`}>
+                        <View style={tw`flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 py-2`}>
+                            <Pressable style={tw`p-2`}>
+                                <Ionicons name="add-circle-outline" size={28} color="#9CA3AF" />
+                            </Pressable>
+                            <TextInput
+                                placeholder="Type your message"
+                                style={tw`flex-1 text-base text-gray-800 px-2`}
+                                placeholderTextColor="#9CA3AF"
+                                value={inputText}
+                                onChangeText={setInputText}
+                                onSubmitEditing={handleSend}
+                            />
+                            <Pressable style={tw`p-2`}>
+                                <Ionicons name="happy-outline" size={24} color="#9CA3AF" />
+                            </Pressable>
+                            <Pressable onPress={handleSend} style={tw`p-2`}>
+                                <Ionicons name="paper-plane" size={24} color="#9CA3AF" />
+                            </Pressable>
+                        </View>
                     </View>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
+                </SafeAreaView>
+            </KeyboardAvoidingView>
         </View>
     );
 }
