@@ -3,7 +3,6 @@ import { View, Text, Pressable, TextInput, StatusBar, ScrollView, Image, Dimensi
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import MapView, { Marker } from 'react-native-maps';
 import tw from 'twrnc';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -12,13 +11,6 @@ export default function HomeScreen() {
     const [mode, setMode] = useState<'transport' | 'delivery'>('transport');
     const [flowState, setFlowState] = useState<'none' | 'selecting' | 'confirming'>('none');
     const [locations, setLocations] = useState({ from: '', to: '' });
-
-    const initialRegion = {
-        latitude: 37.78825,
-        longitude: -122.4324,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-    };
 
     const toggleSidebar = (open: boolean) => {
         DeviceEventEmitter.emit('toggleSidebar', open);
@@ -69,7 +61,7 @@ export default function HomeScreen() {
                                 <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 py-4 bg-white`}>
                                     <Ionicons name="location-outline" size={24} color="#9CA3AF" style={tw`mr-3`} />
                                     <TextInput
-                                        placeholder="United state"
+                                        placeholder="United States"
                                         style={tw`flex-1 text-base text-gray-800`}
                                         placeholderTextColor="#9CA3AF"
                                         onChangeText={(v) => setLocations(l => ({ ...l, to: v }))}
@@ -149,31 +141,24 @@ export default function HomeScreen() {
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-            {/* Interactive Map Background */}
-            <View style={tw`absolute inset-0`}>
-                <MapView
-                    style={tw`w-full h-full`}
-                    initialRegion={initialRegion}
-                    showsUserLocation={true}
-                    showsMyLocationButton={false}
-                >
-                    <Marker
-                        coordinate={{
-                            latitude: 37.78825,
-                            longitude: -122.4324,
-                        }}
-                    >
-                        <View style={tw`items-center justify-center`}>
-                            <View style={tw`w-40 h-40 rounded-full bg-[#10B981]/10 items-center justify-center`}>
-                                <View style={tw`w-20 h-20 rounded-full bg-[#10B981]/20 items-center justify-center`}>
-                                    <View style={tw`w-8 h-8 rounded-full bg-[#10B981]/30 items-center justify-center`}>
-                                        <Ionicons name="location" size={24} color="#1F2937" />
-                                    </View>
-                                </View>
+            {/* Map Background */}
+            <View style={tw`absolute inset-0 bg-gray-100`}>
+                <Image
+                    source={require('../../assets/images/map_background.png')}
+                    style={tw`w-full h-full opacity-60`}
+                    resizeMode="cover"
+                />
+
+                {/* Central Ripple Pin */}
+                <View style={tw`absolute inset-0 items-center justify-center`}>
+                    <View style={tw`w-40 h-40 rounded-full bg-[#10B981]/10 items-center justify-center`}>
+                        <View style={tw`w-20 h-20 rounded-full bg-[#10B981]/20 items-center justify-center`}>
+                            <View style={tw`w-8 h-8 rounded-full bg-[#10B981]/30 items-center justify-center`}>
+                                <Ionicons name="location" size={24} color="#1F2937" />
                             </View>
                         </View>
-                    </Marker>
-                </MapView>
+                    </View>
+                </View>
             </View>
 
             <SafeAreaView style={tw`flex-1 px-4 pt-4`}>
