@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Image, ScrollView, TextInput, StatusBar, Alert } from 'react-native';
+import { View, Text, Pressable, Image, ScrollView, TextInput, StatusBar, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import tw from 'twrnc';
 
 const paymentMethods = [
@@ -20,6 +21,38 @@ export default function RequestRentScreen() {
     const [selectedTip, setSelectedTip] = useState('$2');
     const [rating, setRating] = useState(5);
 
+    // Date & Time states
+    const [date, setDate] = useState(new Date());
+    const [time, setTime] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        if (Platform.OS === 'android') {
+            setShowDatePicker(false);
+        }
+        if (selectedDate) {
+            setDate(selectedDate);
+        }
+    };
+
+    const onTimeChange = (event: any, selectedTime?: Date) => {
+        if (Platform.OS === 'android') {
+            setShowTimePicker(false);
+        }
+        if (selectedTime) {
+            setTime(selectedTime);
+        }
+    };
+
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString();
+    };
+
+    const formatTime = (date: Date) => {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
     const carDisplayName = typeof name === 'string' ? name : Array.isArray(name) ? name[0] : 'Mustang Shelby GT';
     const carFirstName = carDisplayName.split(' ')[0];
 
@@ -29,7 +62,7 @@ export default function RequestRentScreen() {
         'Mustang Shelby GT': require('../../assets/images/mustang.png'),
         'BMW i8': require('../../assets/images/bmw_i8.png'),
         'Jaguar Silber': require('../../assets/images/jaguar.png'),
-        'Yellow Cab NYC': require('../../assets/images/taxi_render.png'),
+        'NYC Yellow Cab': require('../../assets/images/taxi_render.png'),
         'Executive Taxi': require('../../assets/images/taxi_render.png'),
         'Yamaha R1M': require('../../assets/images/motorcycle_render.png'),
         'Scooter Pro': require('../../assets/images/motorcycle_render.png'),
@@ -37,7 +70,7 @@ export default function RequestRentScreen() {
         'Electric Cycle': require('../../assets/images/bicycle_render.png'),
     };
 
-    const currentImage = vehicleImages[name as string] || vehicleImages['Mustang Shelby GT'];
+    const currentImage = vehicleImages[carDisplayName] || vehicleImages['Mustang Shelby GT'];
 
     const handleNextStep = () => {
         if (step === 0) {
@@ -116,12 +149,44 @@ export default function RequestRentScreen() {
                     {step === 0 ? (
                         /* Step 0: Date & Time Inputs */
                         <View style={tw`gap-4 mb-8`}>
-                            <View style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4`}>
-                                <TextInput placeholder="Date" style={tw`text-base text-gray-800`} placeholderTextColor="#D1D5DB" />
-                            </View>
-                            <View style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4`}>
-                                <TextInput placeholder="Time" style={tw`text-base text-gray-800`} placeholderTextColor="#D1D5DB" />
-                            </View>
+                            <Pressable 
+                                onPress={() => setShowDatePicker(prev => !prev)}
+                                style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between`}
+                            >
+                                <Text style={tw`text-base ${date ? 'text-gray-800' : 'text-gray-400'}`}>
+                                    {date ? formatDate(date) : 'Date'}
+                                </Text>
+                                <Ionicons name="calendar-outline" size={20} color="#10B981" />
+                            </Pressable>
+
+                            <Pressable 
+                                onPress={() => setShowTimePicker(prev => !prev)}
+                                style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between`}
+                            >
+                                <Text style={tw`text-base ${time ? 'text-gray-800' : 'text-gray-400'}`}>
+                                    {time ? formatTime(time) : 'Time'}
+                                </Text>
+                                <Ionicons name="time-outline" size={20} color="#10B981" />
+                            </Pressable>
+
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={date}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                                    onChange={onDateChange}
+                                />
+                            )}
+
+                            {showTimePicker && (
+                                <DateTimePicker
+                                    value={time}
+                                    mode="time"
+                                    is24Hour={true}
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'clock'}
+                                    onChange={onTimeChange}
+                                />
+                            )}
                         </View>
                     ) : (
                         /* Step 1: Charge Section */

@@ -27,7 +27,7 @@ export default function HomeScreen() {
         if (flowState === 'none') return null;
 
         return (
-            <View style={[tw`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40`, { height: flowState === 'selecting' ? '65%' : '50%' }]}>
+            <View style={[tw`absolute bottom-10 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40`, { height: flowState === 'selecting' ? '65%' : '50%' }]}>
                 {/* Drag Handle */}
                 <View style={tw`items-center py-4`}>
                     <View style={tw`w-16 h-1.5 bg-gray-200 rounded-full`} />
