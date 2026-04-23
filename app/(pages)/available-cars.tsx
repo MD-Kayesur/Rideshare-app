@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
 
-const transportData: Record<string, any[]> = {
+export const transportData: Record<string, any[]> = {
     'Car': [
         { id: 'c1', name: 'BMW Cabrio', transmission: 'Automatic', seats: 3, fuel: 'Octane', distance: '800m', time: '5mins away', image: require('../../assets/images/car_transparent.png') },
         { id: 'c2', name: 'Mustang Shelby GT', transmission: 'Automatic', seats: 3, fuel: 'Octane', distance: '1.2km', time: '8mins away', image: require('../../assets/images/car_transparent.png') },
@@ -99,16 +99,10 @@ export default function AvailableCarsScreen() {
                                         </Text>
                                     </View>
                                 </View>
-                                <MaterialCommunityIcons 
-                                    name={
-                                        currentTransportType === 'Car' ? 'car' :
-                                        currentTransportType === 'Bike' ? 'motorbike' :
-                                        currentTransportType === 'Cycle' ? 'bicycle' :
-                                        currentTransportType === 'Taxi' ? 'taxi' : 'car'
-                                    } 
-                                    size={80} 
-                                    color="#10B981" 
-                                    style={tw`-mr-2`}
+                                <Image 
+                                    source={vehicle.image} 
+                                    style={tw`w-24 h-24`} 
+                                    resizeMode="contain"
                                 />
                             </View>
 
