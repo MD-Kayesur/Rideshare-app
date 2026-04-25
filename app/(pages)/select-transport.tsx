@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, Image, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
 
@@ -13,6 +13,9 @@ const transportationModes = [
 ];
 
 export default function SelectTransportScreen() {
+    const { mode } = useLocalSearchParams();
+    const isDelivery = mode === 'delivery';
+
     return (
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
@@ -22,13 +25,13 @@ export default function SelectTransportScreen() {
                         <Ionicons name="chevron-back" size={24} color="#374151" />
                         <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
                     </Pressable>
-                    <Text style={tw`text-xl font-bold text-gray-800`}>Select transport</Text>
+                    <Text style={tw`text-xl font-bold text-gray-800`}>{isDelivery ? 'Select delivery' : 'Select transport'}</Text>
                     <View style={tw`w-10`} />
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
                     <Text style={tw`text-3xl font-extrabold text-gray-700 text-center mt-8 mb-10`}>
-                        Select your transport
+                        {isDelivery ? 'Select your delivery' : 'Select your transport'}
                     </Text>
 
                     <View style={tw`flex-row flex-wrap justify-between`}>

@@ -24,12 +24,12 @@ export default function LandingPage() {
     {
       title: "Anywhere you are",
       description: "Sell houses easily with the help of Listenoryx and to make this line big I am writing more.",
-      image: require('../assets/images/anywhere_you_are.png'),
+      image: require('../assets/images/Anywhere_you_are.png'),
     },
     {
       title: "At anytime",
       description: "Sell houses easily with the help of Listenoryx and to make this line big I am writing more.",
-      image: require('../assets/images/at_anytime.png'),
+      image: require('../assets/images/At_anytime.png'),
     },
     {
       title: "Book your car",

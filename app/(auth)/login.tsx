@@ -5,12 +5,42 @@ import { Ionicons } from "@expo/vector-icons";
 import tw from 'twrnc';
 import React, { useState } from "react";
 
+import { useLoginMutation } from "../../redux/features/auth/authApi";
+import { useAppDispatch } from "../../redux/hooks";
+import { setUser } from "../../redux/features/auth/authSlice";
+import * as SecureStore from 'expo-secure-store';
+
 export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [login, { isLoading }] = useLoginMutation();
+    const dispatch = useAppDispatch();
 
     const isFormValid = identifier.includes("@") && password.trim() !== "";
+
+    const handleLogin = async () => {
+        try {
+            const res = await login({ email: identifier, password }).unwrap();
+            console.log('Login response:', res);
+            
+            if (res.success && res.data) {
+                const { accessToken, user } = res.data;
+                
+                // Save to SecureStore
+                await SecureStore.setItemAsync('accessToken', accessToken);
+                
+                // Save to Redux
+                dispatch(setUser({ user, token: accessToken }));
+                
+                Alert.alert("Success", "Logged in successfully!");
+                router.push("/(tabs)");
+            }
+        } catch (error: any) {
+            console.error('Login error:', error);
+            Alert.alert("Error", error?.data?.message || "Something went wrong. Please try again.");
+        }
+    };
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -66,14 +96,16 @@ export default function LoginScreen() {
 
                     {/* Login Button */}
                     <Pressable
-                        onPress={() => isFormValid && router.push("/(tabs)")}
-                        disabled={!isFormValid}
+                        onPress={handleLogin}
+                        disabled={!isFormValid || isLoading}
                         style={[
                             tw`flex-row items-center justify-center border py-3 rounded-xl gap-3`,
-                            isFormValid ? tw`border-[#10B981] bg-white` : tw`border-gray-200 bg-gray-50`
+                            isFormValid && !isLoading ? tw`border-[#10B981] bg-white` : tw`border-gray-200 bg-gray-50`
                         ]}
                     >
-                        <Text style={[tw`font-bold text-lg`, isFormValid ? tw`text-[#10B981]` : tw`text-gray-300`]}>Login</Text>
+                        <Text style={[tw`font-bold text-lg`, isFormValid && !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
+                            {isLoading ? "Logging in..." : "Login"}
+                        </Text>
                     </Pressable>
                 </View>
 

@@ -23,7 +23,16 @@
         "foregroundImage": "./assets/images/image.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.starter.app"
+      "package": "com.starter.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "" 
+        }
+      }
     },
     "web": {},
     "scheme": "starter",
