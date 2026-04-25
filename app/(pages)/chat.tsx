@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, Image, TextInput, ScrollView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Pressable, Image, TextInput, ScrollView, StatusBar, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -53,8 +53,8 @@ export default function ChatScreen() {
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
             <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 90}
                 style={tw`flex-1`}
             >
                 <SafeAreaView style={tw`flex-1`}>
@@ -70,7 +70,7 @@ export default function ChatScreen() {
                     {/* Chat Content */}
                     <ScrollView
                         ref={scrollRef}
-                        style={tw`flex-1 px-6 pt-6`}
+                        style={tw`flex-1 px-2 pt-6`}
                         contentContainerStyle={tw`pb-6`}
                         showsVerticalScrollIndicator={false}
                     >
