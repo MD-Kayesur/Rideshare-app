@@ -82,7 +82,7 @@ export default function ChatScreen() {
                                             <Image source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=Sergio' }} style={tw`w-full h-full`} />
                                         </View>
                                     )}
-                                    <View style={tw`max-w-[80%]`}>
+                                    <View style={tw`max-w-[70%]`}>
                                         <View style={tw`px-4 py-3 rounded-2xl ${msg.type === 'sent' ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
                                             <Text style={tw`text-gray-700 text-base leading-5`}>{msg.text}</Text>
                                         </View>
@@ -90,6 +90,11 @@ export default function ChatScreen() {
                                             {msg.time}
                                         </Text>
                                     </View>
+                                    {msg.type === 'sent' && (
+                                        <View style={tw`w-10 h-10 rounded-full ml-3 overflow-hidden border border-gray-100`}>
+                                            <Image source={{ uri: 'https://avatar.iran.liara.run/public/girl?username=Maria' }} style={tw`w-full h-full`} />
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         ))}
