@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import tw from 'twrnc';
 import React, { useState } from "react";
+import { useRegisterMutation } from "../../redux/features/auth/authApi";
 
 export default function SignUpScreen() {
     const [agreed, setAgreed] = useState(false);
@@ -14,8 +15,34 @@ export default function SignUpScreen() {
     const [showGenderModal, setShowGenderModal] = useState(false);
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
+    const [register, { isLoading }] = useRegisterMutation();
 
-    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && agreed;
+    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && agreed && gender !== "";
+
+    const handleSignUp = async () => {
+        try {
+            const fullPhone = `${selectedCountry.code}${phone}`;
+            const res = await register({
+                name,
+                email,
+                phone: fullPhone,
+                gender,
+                password: "Password123!",
+                role: 'rider'
+            }).unwrap();
+
+            if (res.success) {
+                Alert.alert("Success", "Account created! Please verify your phone number.");
+                router.push({
+                    pathname: "/(auth)/verify",
+                    params: { email }
+                });
+            }
+        } catch (error: any) {
+            console.error('Signup error:', error);
+            Alert.alert("Error", error?.data?.message || "Something went wrong.");
+        }
+    };
 
     const genderOptions = ["Male", "Female", "Other"];
     const countries = [
@@ -173,11 +200,13 @@ export default function SignUpScreen() {
 
                     {/* Sign Up Button */}
                     <Pressable
-                        onPress={() => isFormValid && router.push("/(auth)/verify")}
-                        disabled={!isFormValid}
-                        style={tw`flex-row items-center justify-center border ${isFormValid ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
+                        onPress={handleSignUp}
+                        disabled={!isFormValid || isLoading}
+                        style={tw`flex-row items-center justify-center border ${isFormValid && !isLoading ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
                     >
-                        <Text style={[tw`font-bold text-lg`, isFormValid ? tw`text-[#10B981]` : tw`text-gray-300`]}>Sign Up</Text>
+                        <Text style={[tw`font-bold text-lg`, isFormValid && !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
+                            {isLoading ? "Signing Up..." : "Sign Up"}
+                        </Text>
                     </Pressable>
                 </View>
 

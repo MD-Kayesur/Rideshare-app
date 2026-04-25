@@ -13,39 +13,53 @@ const initialMessages = [
     { id: '5', text: 'Welcome to Car2go Customer Service', time: 'Just now', type: 'sent' },
 ];
 
+import { useLocalSearchParams } from 'expo-router';
+import { useGetMessagesQuery, useSendMessageMutation } from '../../redux/features/chat/chatApi';
+import { useChatSocket } from '../../hooks/useChatSocket';
+import { useAppSelector } from '../../redux/hooks';
+import { useCurrentUser } from '../../redux/features/auth/authSlice';
+
 export default function ChatScreen() {
-    const [messages, setMessages] = useState(initialMessages);
+    const { chatId = 'default_chat_id' } = useLocalSearchParams(); // Get chatId from params
+    const user = useAppSelector(useCurrentUser);
+    const { data: messagesData, isLoading } = useGetMessagesQuery(chatId);
+    const [sendMessage] = useSendMessageMutation();
+    const socket = useChatSocket(chatId as string);
+    
     const [inputText, setInputText] = useState('');
     const scrollRef = useRef<ScrollView>(null);
 
+    const messages = messagesData?.data || [];
+
     // Auto-scroll to bottom when messages change
     useEffect(() => {
-        setTimeout(() => {
-            scrollRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+        if (messages.length > 0) {
+            setTimeout(() => {
+                scrollRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+        }
     }, [messages]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (inputText.trim()) {
-            const newMessage = {
-                id: Date.now().toString(),
-                text: inputText,
-                time: 'Just now',
-                type: 'sent',
+            const messageData = {
+                chatId,
+                content: inputText,
+                senderId: user?._id || 'guest_id',
             };
-            setMessages(prev => [...prev, newMessage]);
-            setInputText('');
 
-            // Automatic reply simulation
-            setTimeout(() => {
-                const replyMessage = {
-                    id: (Date.now() + 1).toString(),
-                    text: 'Thank you for your message! Our support team will get back to you shortly.',
-                    time: 'Just now',
-                    type: 'received',
-                };
-                setMessages(prev => [...prev, replyMessage]);
-            }, 1500);
+            try {
+                // Send via REST API
+                await sendMessage({ chatId, content: inputText }).unwrap();
+                
+                // Also emit via Socket for immediate real-time broadcast if backend expects it
+                // (Though our useChatSocket listener will catch it if backend broadcasts)
+                socket.emit('send_message', messageData);
+                
+                setInputText('');
+            } catch (error) {
+                console.error('Failed to send message:', error);
+            }
         }
     };
 
@@ -54,7 +68,6 @@ export default function ChatScreen() {
             <StatusBar barStyle="dark-content" />
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 90}
                 style={tw`flex-1`}
             >
                 <SafeAreaView style={tw`flex-1`}>
@@ -74,30 +87,35 @@ export default function ChatScreen() {
                         contentContainerStyle={tw`pb-6`}
                         showsVerticalScrollIndicator={false}
                     >
-                        {messages.map((msg: any) => (
-                            <View key={msg.id} style={tw`mb-6`}>
-                                <View style={tw`flex-row ${msg.type === 'sent' ? 'justify-end' : 'justify-start'}`}>
-                                    {msg.type === 'received' && (
-                                        <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
-                                            <Image source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=Sergio' }} style={tw`w-full h-full`} />
+                        {isLoading ? (
+                            <Text style={tw`text-center mt-10 text-gray-400`}>Loading messages...</Text>
+                        ) : messages.map((msg: any) => {
+                            const isSent = msg.sender === user?._id || msg.sender?._id === user?._id;
+                            return (
+                                <View key={msg._id || msg.id} style={tw`mb-6`}>
+                                    <View style={tw`flex-row ${isSent ? 'justify-end' : 'justify-start'}`}>
+                                        {!isSent && (
+                                            <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
+                                                <Image source={{ uri: msg.sender?.avatar || 'https://avatar.iran.liara.run/public/boy?username=Sergio' }} style={tw`w-full h-full`} />
+                                            </View>
+                                        )}
+                                        <View style={tw`max-w-[70%]`}>
+                                            <View style={tw`px-4 py-3 rounded-2xl ${isSent ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
+                                                <Text style={tw`text-gray-700 text-base leading-5`}>{msg.content || msg.text}</Text>
+                                            </View>
+                                            <Text style={tw`text-gray-400 text-xs mt-1 ${isSent ? 'text-right' : 'text-left'}`}>
+                                                {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : msg.time}
+                                            </Text>
                                         </View>
-                                    )}
-                                    <View style={tw`max-w-[70%]`}>
-                                        <View style={tw`px-4 py-3 rounded-2xl ${msg.type === 'sent' ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
-                                            <Text style={tw`text-gray-700 text-base leading-5`}>{msg.text}</Text>
-                                        </View>
-                                        <Text style={tw`text-gray-400 text-xs mt-1 ${msg.type === 'sent' ? 'text-right' : 'text-left'}`}>
-                                            {msg.time}
-                                        </Text>
+                                        {isSent && (
+                                            <View style={tw`w-10 h-10 rounded-full ml-3 overflow-hidden border border-gray-100`}>
+                                                <Image source={{ uri: user?.avatar || 'https://avatar.iran.liara.run/public/girl?username=Maria' }} style={tw`w-full h-full`} />
+                                            </View>
+                                        )}
                                     </View>
-                                    {msg.type === 'sent' && (
-                                        <View style={tw`w-10 h-10 rounded-full ml-3 overflow-hidden border border-gray-100`}>
-                                            <Image source={{ uri: 'https://avatar.iran.liara.run/public/girl?username=Maria' }} style={tw`w-full h-full`} />
-                                        </View>
-                                    )}
                                 </View>
-                            </View>
-                        ))}
+                            );
+                        })}
                     </ScrollView>
 
                     {/* Input Bar */}
