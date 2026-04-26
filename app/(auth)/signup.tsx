@@ -26,6 +26,14 @@ export default function SignUpScreen() {
     const handleSignUp = async () => {
         try {
             const fullPhone = `${selectedCountry.code}${phone}`;
+
+            console.log(fullPhone, 'fullPhone');
+            console.log(name, 'name');
+            console.log(email, 'email');
+            console.log(phone, 'phone');
+            console.log(gender, 'gender');
+            console.log(password, 'password');
+            console.log(role, 'role');
             const res = await register({
                 name,
                 email,
