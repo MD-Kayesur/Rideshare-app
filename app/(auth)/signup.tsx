@@ -12,12 +12,14 @@ export default function SignUpScreen() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [showGenderModal, setShowGenderModal] = useState(false);
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
     const [register, { isLoading }] = useRegisterMutation();
 
-    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && agreed && gender !== "";
+    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && password.length >= 6 && agreed && gender !== "";
 
     const handleSignUp = async () => {
         try {
@@ -27,12 +29,12 @@ export default function SignUpScreen() {
                 email,
                 phone: fullPhone,
                 gender,
-                password: "Password123!",
+                password,
                 role: 'rider'
             }).unwrap();
 
             if (res.success) {
-                Alert.alert("Success", "Account created! Please verify your phone number.");
+                Alert.alert("Success", "Account created! Please verify your email.");
                 router.push({
                     pathname: "/(auth)/verify",
                     params: { email }
@@ -110,6 +112,25 @@ export default function SignUpScreen() {
                                 keyboardType="phone-pad"
                             />
                         </View>
+                    </View>
+
+                    {/* Password Input */}
+                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 bg-white`}>
+                        <TextInput
+                            placeholder="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            style={tw`flex-1 py-4 text-base`}
+                            placeholderTextColor="#ccc"
+                            secureTextEntry={!showPassword}
+                        />
+                        <Pressable onPress={() => setShowPassword(!showPassword)}>
+                            <Ionicons 
+                                name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                size={24} 
+                                color="#999" 
+                            />
+                        </Pressable>
                     </View>
 
                     {/* Country Modal */}
