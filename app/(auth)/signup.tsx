@@ -12,12 +12,16 @@ export default function SignUpScreen() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [password, setPassword] = useState("");
+    const [role, setRole] = useState("rider");
+    const [showPassword, setShowPassword] = useState(false);
     const [showGenderModal, setShowGenderModal] = useState(false);
+    const [showRoleModal, setShowRoleModal] = useState(false);
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
     const [register, { isLoading }] = useRegisterMutation();
 
-    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && agreed && gender !== "";
+    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && password.length >= 6 && agreed && gender !== "" && role !== "";
 
     const handleSignUp = async () => {
         try {
@@ -27,12 +31,12 @@ export default function SignUpScreen() {
                 email,
                 phone: fullPhone,
                 gender,
-                password: "Password123!",
-                role: 'rider'
+                password,
+                role
             }).unwrap();
-
+            console.log(res, 'res');
             if (res.success) {
-                Alert.alert("Success", "Account created! Please verify your phone number.");
+                Alert.alert("Success", "Account created! Please verify your email.");
                 router.push({
                     pathname: "/(auth)/verify",
                     params: { email }
@@ -45,6 +49,10 @@ export default function SignUpScreen() {
     };
 
     const genderOptions = ["Male", "Female", "Other"];
+    const roleOptions = [
+        { label: "Rider", value: "rider" },
+        { label: "Driver", value: "driver" }
+    ];
     const countries = [
         { name: "Bangladesh", flag: "🇧🇩", code: "+880" },
         { name: "United States", flag: "🇺🇸", code: "+1" },
@@ -110,6 +118,25 @@ export default function SignUpScreen() {
                                 keyboardType="phone-pad"
                             />
                         </View>
+                    </View>
+
+                    {/* Password Input */}
+                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 bg-white`}>
+                        <TextInput
+                            placeholder="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            style={tw`flex-1 py-4 text-base`}
+                            placeholderTextColor="#ccc"
+                            secureTextEntry={!showPassword}
+                        />
+                        <Pressable onPress={() => setShowPassword(!showPassword)}>
+                            <Ionicons 
+                                name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                size={24} 
+                                color="#999" 
+                            />
+                        </Pressable>
                     </View>
 
                     {/* Country Modal */}
@@ -179,6 +206,47 @@ export default function SignUpScreen() {
                                         style={tw`py-4 border-b border-gray-100 ${index === genderOptions.length - 1 ? 'border-b-0' : ''}`}
                                     >
                                         <Text style={tw`text-lg text-gray-700 text-center`}>{option}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
+                    {/* Role Selection */}
+                    <Pressable
+                        onPress={() => setShowRoleModal(true)}
+                        style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white`}
+                    >
+                        <Text style={[tw`text-base`, role ? tw`text-gray-800` : tw`text-gray-300`]}>
+                            {roleOptions.find(opt => opt.value === role)?.label || "Select Role"}
+                        </Text>
+                        <Ionicons name="chevron-down" size={20} color="#666" />
+                    </Pressable>
+
+                    {/* Modal for Role */}
+                    <Modal
+                        visible={showRoleModal}
+                        transparent={true}
+                        animationType="fade"
+                        onRequestClose={() => setShowRoleModal(false)}
+                    >
+                        <TouchableOpacity
+                            activeOpacity={1}
+                            onPress={() => setShowRoleModal(false)}
+                            style={tw`flex-1 bg-black/50 justify-center items-center px-8`}
+                        >
+                            <View style={tw`bg-white w-full rounded-2xl p-4`}>
+                                <Text style={tw`text-xl font-bold text-gray-800 mb-4 text-center`}>Select Role</Text>
+                                {roleOptions.map((option, index) => (
+                                    <Pressable
+                                        key={option.value}
+                                        onPress={() => {
+                                            setRole(option.value);
+                                            setShowRoleModal(false);
+                                        }}
+                                        style={tw`py-4 border-b border-gray-100 ${index === roleOptions.length - 1 ? 'border-b-0' : ''}`}
+                                    >
+                                        <Text style={tw`text-lg text-gray-700 text-center`}>{option.label}</Text>
                                     </Pressable>
                                 ))}
                             </View>
