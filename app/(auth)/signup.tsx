@@ -47,7 +47,10 @@ export default function SignUpScreen() {
                 Alert.alert("Success", "Account created! Please verify your email.");
                 router.push({
                     pathname: "/(auth)/verify",
-                    params: { email }
+                    params: { 
+                        email,
+                        code: res.data?.verificationCode // Pass code for practice purpose
+                    }
                 });
             }
         } catch (error: any) {
