@@ -49,12 +49,8 @@ export default function ChatScreen() {
             };
 
             try {
-                // Send via REST API
+                // Send via REST API - this will trigger the backend to broadcast via socket
                 await sendMessage({ chatId, content: inputText }).unwrap();
-                
-                // Also emit via Socket for immediate real-time broadcast if backend expects it
-                // (Though our useChatSocket listener will catch it if backend broadcasts)
-                socket.emit('send_message', messageData);
                 
                 setInputText('');
             } catch (error) {
