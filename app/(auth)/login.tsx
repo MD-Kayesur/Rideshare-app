@@ -29,6 +29,7 @@ export default function LoginScreen() {
                 
                 // Save to Storage
                 await setItem('accessToken', accessToken);
+                await setItem('userData', JSON.stringify(user));
                 
                 // Save to Redux
                 dispatch(setUser({ user, token: accessToken }));

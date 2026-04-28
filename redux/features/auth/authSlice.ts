@@ -26,6 +26,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       SecureStore.deleteItemAsync('accessToken');
+      SecureStore.deleteItemAsync('userData');
     },
   },
 });
