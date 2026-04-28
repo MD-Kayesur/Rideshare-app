@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { socketService } from '../utils/socket';
-import { baseApi } from '../redux/hooks/baseApi';
+import { chatApi } from '../redux/features/chat/chatApi';
 import { useAppDispatch } from '../redux/hooks';
 
 export const useChatSocket = (chatId?: string) => {
@@ -16,7 +16,7 @@ export const useChatSocket = (chatId?: string) => {
     socket.on('new_message', (message) => {
       // Manually update the cache for getMessages query
       dispatch(
-        baseApi.util.updateQueryData('getMessages' as any, chatId as any, (draft: any) => {
+        chatApi.util.updateQueryData('getMessages' as any, chatId as any, (draft: any) => {
           // Ensure draft.data exists and the message isn't already there
           if (draft?.data) {
             const exists = draft.data.some((m: any) => (m._id || m.id) === (message._id || message.id));
@@ -28,7 +28,7 @@ export const useChatSocket = (chatId?: string) => {
       );
       
       // Also invalidate chats to update last message in the list
-      dispatch(baseApi.util.invalidateTags(['Chat']));
+      dispatch(chatApi.util.invalidateTags(['Chat']) as any);
     });
 
     return () => {
