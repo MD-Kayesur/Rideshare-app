@@ -10,8 +10,9 @@ import { useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 
 export default function PhoneVerificationScreen() {
-    const { email = "" } = useLocalSearchParams();
+    const { email = "", code: initialCode = "" } = useLocalSearchParams();
     const [otp, setOtp] = useState(['', '', '', '', '']);
+    const [displayCode, setDisplayCode] = useState(initialCode as string);
     const inputRefs = useRef<Array<TextInput | null>>([]);
     const [verifyOTP, { isLoading: isVerifying }] = useVerifyOTPMutation();
     const [resendOTP, { isLoading: isResending }] = useResendOTPMutation();
@@ -56,7 +57,10 @@ export default function PhoneVerificationScreen() {
         try {
             const res = await resendOTP({ email }).unwrap();
             if (res.success) {
-                Alert.alert("Success", "New code sent! Check your logs.");
+                if (res.data?.verificationCode) {
+                    setDisplayCode(res.data.verificationCode);
+                }
+                Alert.alert("Success", "New code sent! Check your screen.");
             }
         } catch (error: any) {
             console.error('Resend error:', error);
@@ -83,9 +87,16 @@ export default function PhoneVerificationScreen() {
                 <Text style={tw`text-3xl font-bold text-gray-800 text-center mb-4`}>
                     Phone verification
                 </Text>
-                <Text style={tw`text-base text-gray-400 text-center mb-10`}>
+                <Text style={tw`text-base text-gray-400 text-center mb-4`}>
                     Enter your OTP code for {email}
                 </Text>
+                {displayCode ? (
+                    <Text style={tw`text-xl font-bold text-[#10B981] text-center mb-10`}>
+                        Practice Code: {displayCode}
+                    </Text>
+                ) : (
+                    <View style={tw`mb-10`} />
+                )}
 
                 {/* OTP Input Boxes */}
                 <View style={tw`flex-row justify-between mb-10`}>

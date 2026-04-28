@@ -1,6 +1,6 @@
 import { baseApi } from '../../hooks/baseApi';
 
-const chatApi = baseApi.injectEndpoints({
+export const chatApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getMyChats: builder.query({
       query: () => '/chats/my-chats',

@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import { useLoginMutation } from "../../redux/features/auth/authApi";
 import { useAppDispatch } from "../../redux/hooks";
 import { setUser } from "../../redux/features/auth/authSlice";
-import * as SecureStore from 'expo-secure-store';
+import { setItem } from "../../redux/hooks/storage";
 
 export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
@@ -27,8 +27,9 @@ export default function LoginScreen() {
             if (res.success && res.data) {
                 const { accessToken, user } = res.data;
                 
-                // Save to SecureStore
-                await SecureStore.setItemAsync('accessToken', accessToken);
+                // Save to Storage
+                await setItem('accessToken', accessToken);
+                await setItem('userData', JSON.stringify(user));
                 
                 // Save to Redux
                 dispatch(setUser({ user, token: accessToken }));

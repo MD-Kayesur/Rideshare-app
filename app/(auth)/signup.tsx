@@ -19,6 +19,8 @@ export default function SignUpScreen() {
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
+    const [emailError, setEmailError] = useState("");
+    const [phoneError, setPhoneError] = useState("");
     const [register, { isLoading }] = useRegisterMutation();
 
     const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && password.length >= 6 && agreed && gender !== "" && role !== "";
@@ -26,6 +28,14 @@ export default function SignUpScreen() {
     const handleSignUp = async () => {
         try {
             const fullPhone = `${selectedCountry.code}${phone}`;
+
+            console.log(fullPhone, 'fullPhone');
+            console.log(name, 'name');
+            console.log(email, 'email');
+            console.log(phone, 'phone');
+            console.log(gender, 'gender');
+            console.log(password, 'password');
+            console.log(role, 'role');
             const res = await register({
                 name,
                 email,
@@ -39,12 +49,22 @@ export default function SignUpScreen() {
                 Alert.alert("Success", "Account created! Please verify your email.");
                 router.push({
                     pathname: "/(auth)/verify",
-                    params: { email }
+                    params: { 
+                        email,
+                        code: res.data?.verificationCode // Pass code for practice purpose
+                    }
                 });
             }
         } catch (error: any) {
             console.error('Signup error:', error);
-            Alert.alert("Error", error?.data?.message || "Something went wrong.");
+            const errorMessage = error?.data?.message || "";
+            if (errorMessage.toLowerCase().includes("email")) {
+                setEmailError(errorMessage);
+            } else if (errorMessage.toLowerCase().includes("phone")) {
+                setPhoneError(errorMessage);
+            } else {
+                Alert.alert("Error", errorMessage || "Something went wrong.");
+            }
         }
     };
 
@@ -88,36 +108,48 @@ export default function SignUpScreen() {
                     />
 
                     {/* Email Input */}
-                    <TextInput
-                        placeholder="Email"
-                        value={email}
-                        onChangeText={setEmail}
-                        style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
-                        placeholderTextColor="#ccc"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                    />
+                    <View>
+                        <TextInput
+                            placeholder="Email"
+                            value={email}
+                            onChangeText={(text) => {
+                                setEmail(text);
+                                setEmailError("");
+                            }}
+                            style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white ${emailError ? 'border-red-500' : ''}`}
+                            placeholderTextColor="#ccc"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        {emailError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{emailError}</Text> : null}
+                    </View>
 
                     {/* Phone Input with Country Code */}
-                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white`}>
-                        <Pressable
-                            onPress={() => setShowCountryModal(true)}
-                            style={tw`flex-row items-center px-4 py-4 border-r border-gray-200`}
-                        >
-                            <Text style={tw`text-2xl mr-2`}>{selectedCountry.flag}</Text>
-                            <Ionicons name="chevron-down" size={16} color="#666" />
-                        </Pressable>
-                        <View style={tw`flex-row items-center flex-1 px-4`}>
-                            <Text style={tw`text-base text-gray-800 mr-2`}>{selectedCountry.code}</Text>
-                            <TextInput
-                                placeholder="Your mobile number"
-                                value={phone}
-                                onChangeText={setPhone}
-                                style={tw`flex-1 pb-2 text-base`}
-                                placeholderTextColor="#ccc"
-                                keyboardType="phone-pad"
-                            />
+                    <View>
+                        <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white ${phoneError ? 'border-red-500' : ''}`}>
+                            <Pressable
+                                onPress={() => setShowCountryModal(true)}
+                                style={tw`flex-row items-center px-4 py-4 border-r border-gray-200`}
+                            >
+                                <Text style={tw`text-2xl mr-2`}>{selectedCountry.flag}</Text>
+                                <Ionicons name="chevron-down" size={16} color="#666" />
+                            </Pressable>
+                            <View style={tw`flex-row items-center flex-1 px-4`}>
+                                <Text style={tw`text-base text-gray-800 mr-2`}>{selectedCountry.code}</Text>
+                                <TextInput
+                                    placeholder="Your mobile number"
+                                    value={phone}
+                                    onChangeText={(text) => {
+                                        setPhone(text);
+                                        setPhoneError("");
+                                    }}
+                                    style={tw`flex-1 pb-2 text-base`}
+                                    placeholderTextColor="#ccc"
+                                    keyboardType="phone-pad"
+                                />
+                            </View>
                         </View>
+                        {phoneError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{phoneError}</Text> : null}
                     </View>
 
                     {/* Password Input */}
