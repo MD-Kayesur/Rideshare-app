@@ -49,14 +49,11 @@ export default function ChatScreen() {
             };
 
             try {
-                // Send via REST API
-                await sendMessage({ chatId, content: inputText }).unwrap();
-                
-                // Also emit via Socket for immediate real-time broadcast if backend expects it
-                // (Though our useChatSocket listener will catch it if backend broadcasts)
-                socket.emit('send_message', messageData);
-                
+                // Clear input immediately for better UX
                 setInputText('');
+
+                // Send via REST API - this will trigger the backend to broadcast via socket
+                await sendMessage({ chatId, content: inputText }).unwrap();
             } catch (error) {
                 console.error('Failed to send message:', error);
             }
@@ -135,8 +132,16 @@ export default function ChatScreen() {
                             <Pressable style={tw`p-2`}>
                                 <Ionicons name="happy-outline" size={24} color="#9CA3AF" />
                             </Pressable>
-                            <Pressable onPress={handleSend} style={tw`p-2`}>
-                                <Ionicons name="paper-plane" size={24} color="#9CA3AF" />
+                            <Pressable 
+                                onPress={handleSend} 
+                                disabled={!inputText.trim()}
+                                style={tw`p-2`}
+                            >
+                                <Ionicons 
+                                    name="paper-plane" 
+                                    size={24} 
+                                    color={inputText.trim() ? '#3B82F6' : '#9CA3AF'} 
+                                />
                             </Pressable>
                         </View>
                     </View>
