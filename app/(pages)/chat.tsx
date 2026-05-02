@@ -90,6 +90,7 @@ export default function ChatScreen() {
                             if (!msg) return null;
                             const senderObj = msg.sender || {};
                             const senderId = typeof senderObj === 'string' ? senderObj : senderObj._id || senderObj.id;
+                            console.log(senderId, "senderId");
                             const currentUserId = user?._id || user?.id;
                             const isSent = senderId && currentUserId && senderId.toString() === currentUserId.toString();
                             

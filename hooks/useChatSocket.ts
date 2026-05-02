@@ -18,7 +18,13 @@ export const useChatSocket = (chatId?: string) => {
       dispatch(
         chatApi.util.updateQueryData('getMessages' as any, chatId as any, (draft: any) => {
           const processData = (data: any[]) => {
-            const exists = data.some((m: any) => (m._id || m.id) === (message._id || message.id));
+            const messageId = (message._id || message.id || '').toString();
+            if (!messageId) return;
+
+            const exists = data.some((m: any) => 
+              (m._id || m.id || '').toString() === messageId
+            );
+            
             if (!exists) {
               data.push(message);
             }

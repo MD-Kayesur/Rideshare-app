@@ -52,7 +52,11 @@ export const chatApi = baseApi.injectEndpoints({
                   list.splice(index, 1);
                 }
                 // Add the real one if it's not already there (e.g. from socket)
-                const exists = list.some((m: any) => (m._id || m.id) === (realMessage._id || realMessage.id));
+                const realId = (realMessage._id || realMessage.id || '').toString();
+                const exists = list.some((m: any) => 
+                  (m._id || m.id || '').toString() === realId
+                );
+                
                 if (!exists) {
                   list.push(realMessage);
                 }
