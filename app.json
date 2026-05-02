@@ -1,11 +1,13 @@
 {
   "expo": {
-    "name": "react-native-expo-starter",
-    "slug": "react-native-expo-starter",
+    "name": "Rideshare",
+    "slug": "rideshare",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/images/image.png",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/images/image.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,16 +20,33 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/image.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.starter.app"
+      "package": "com.starter.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "" 
+        }
+      }
     },
     "web": {},
     "scheme": "starter",
     "plugins": [
       "expo-web-browser",
       "expo-router",
-      "expo-font"
-    ]
+      "expo-font",
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b9ecf643-3615-491e-a192-07354e348874"
+      }
+    }
   }
 }

@@ -5,8 +5,71 @@ import { Ionicons } from "@expo/vector-icons";
 import tw from 'twrnc';
 import React, { useState } from "react";
 
+import { useLoginMutation } from "../../redux/features/auth/authApi";
+import { useAppDispatch } from "../../redux/hooks";
+import { setUser } from "../../redux/features/auth/authSlice";
+import { setItem } from "../../redux/hooks/storage";
+
 export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [login, { isLoading }] = useLoginMutation();
+    const dispatch = useAppDispatch();
+
+    const validateForm = () => {
+        let isValid = true;
+        if (!identifier.includes("@")) {
+            setEmailError("Please enter a valid email address");
+            isValid = false;
+        } else {
+            setEmailError("");
+        }
+
+        if (password.trim() === "") {
+            setPasswordError("Password is required");
+            isValid = false;
+        } else {
+            setPasswordError("");
+        }
+        return isValid;
+    };
+
+    const handleLogin = async () => {
+        if (!validateForm()) return;
+
+        try {
+            const res = await login({ email: identifier, password }).unwrap();
+            
+            if (res.success && res.data) {
+                const { accessToken, user } = res.data;
+                
+                // Save to Storage
+                await setItem('accessToken', accessToken);
+                await setItem('userData', JSON.stringify(user));
+                
+                // Save to Redux
+                dispatch(setUser({ user, token: accessToken }));
+                
+                Alert.alert("Success", "Logged in successfully!");
+                router.push("/(tabs)");
+            }
+        } catch (error: any) {
+            console.error('Login error:', error);
+            const errorMessage = error?.data?.message || "";
+            const lowerMessage = errorMessage.toLowerCase();
+
+            if (lowerMessage.includes("user") || lowerMessage.includes("email") || lowerMessage.includes("found")) {
+                setEmailError(errorMessage);
+            } else if (lowerMessage.includes("password")) {
+                setPasswordError(errorMessage);
+            } else {
+                Alert.alert("Error", errorMessage || "Something went wrong. Please try again.");
+            }
+        }
+    };
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -21,29 +84,51 @@ export default function LoginScreen() {
             </View>
 
             <ScrollView style={tw`flex-1 px-8 pt-8`} showsVerticalScrollIndicator={false}>
+                <Text style={[tw`font-black text-[#10B981] text-center mb-10`, { fontSize: 50 }]}>
+                    Rideshare
+                </Text>
+
                 <Text style={tw`text-2xl font-bold text-gray-800 mb-8`}>
-                    Sign in with your email or phone number
+                    Sign in with your email
                 </Text>
 
                 <View style={tw`gap-5`}>
                     {/* Email/Phone Input */}
-                    <TextInput
-                        placeholder="Email or Phone Number"
-                        style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
-                        placeholderTextColor="#ccc"
-                    />
+                    <View>
+                        <TextInput
+                            placeholder="Email"
+                            value={identifier}
+                            onChangeText={(text) => {
+                                setIdentifier(text);
+                                setEmailError("");
+                            }}
+                            style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white ${emailError ? 'border-red-500' : ''}`}
+                            placeholderTextColor="#ccc"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        {emailError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{emailError}</Text> : null}
+                    </View>
 
                     {/* Password Input */}
-                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white px-4`}>
-                        <TextInput
-                            placeholder="Enter Your Password"
-                            secureTextEntry={!showPassword}
-                            style={tw`flex-1 py-4 text-base`}
-                            placeholderTextColor="#ccc"
-                        />
-                        <Pressable onPress={() => setShowPassword(!showPassword)}>
-                            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#ccc" />
-                        </Pressable>
+                    <View>
+                        <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white px-4 ${passwordError ? 'border-red-500' : ''}`}>
+                            <TextInput
+                                placeholder="Enter Your Password"
+                                value={password}
+                                onChangeText={(text) => {
+                                    setPassword(text);
+                                    setPasswordError("");
+                                }}
+                                secureTextEntry={!showPassword}
+                                style={tw`flex-1 py-4 text-base`}
+                                placeholderTextColor="#ccc"
+                            />
+                            <Pressable onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#ccc" />
+                            </Pressable>
+                        </View>
+                        {passwordError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{passwordError}</Text> : null}
                     </View>
 
                     <Pressable style={tw`items-end`} onPress={() => router.push("/(auth)/verification")}>
@@ -52,11 +137,16 @@ export default function LoginScreen() {
 
                     {/* Login Button */}
                     <Pressable
-                        onPress={() => router.push("/(tabs)")}
-                         style={tw`flex-row items-center justify-center border border-gray-200 py-3 rounded-xl gap-3`}
-                      
+                        onPress={handleLogin}
+                        disabled={isLoading}
+                        style={[
+                            tw`flex-row items-center justify-center border py-3 rounded-xl gap-3`,
+                            !isLoading ? tw`border-[#10B981] bg-white` : tw`border-gray-200 bg-gray-50`
+                        ]}
                     >
-                        <Text style={tw`text-black font-bold text-lg`}>Login</Text>
+                        <Text style={[tw`font-bold text-lg`, !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
+                            {isLoading ? "Logging in..." : "Login"}
+                        </Text>
                     </Pressable>
                 </View>
 

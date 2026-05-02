@@ -3,10 +3,35 @@ import { View, Text, Pressable, Image, ScrollView, StatusBar } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useGetMyDriverProfileQuery } from '../../redux/features/driver/driverApi';
 import tw from 'twrnc';
+import { transportData } from './available-cars';
 
 export default function CarDetailsScreen() {
-    const { carId, name } = useLocalSearchParams();
+    const { carId, name, transportType, isMyCar } = useLocalSearchParams();
+    const { data: myProfile } = useGetMyDriverProfileQuery({}, { skip: !isMyCar });
+    const currentCategory = (transportType as string) || 'Car';
+    const vehicles = transportData[currentCategory] || [];
+    
+    // Find the specific vehicle selected or use my profile data
+    let vehicle = vehicles.find(v => v.id === carId);
+    
+    if (isMyCar && myProfile?.data) {
+        const driver = myProfile.data;
+        vehicle = {
+            id: driver._id,
+            name: driver.vehicleModel,
+            image: driver.vehicleImage ? { uri: driver.vehicleImage } : require('../../assets/images/car_transparent.png'),
+            rating: driver.rating || 5,
+            reviews: 0,
+            vehicleType: driver.vehicleType,
+            vehicleNumber: driver.vehicleNumber,
+            licenseNumber: driver.licenseNumber,
+            details: driver.details
+        };
+    } else if (!vehicle) {
+        vehicle = { name: name as string, image: null, rating: 5, reviews: 0 };
+    }
 
     const specs = [
         { icon: 'lightning-bolt', label: 'Max. power', value: '2500hp' },
@@ -23,22 +48,6 @@ export default function CarDetailsScreen() {
         { label: 'Gear type', value: 'Automatic' },
     ];
 
-    // Map car name or type to images
-    const vehicleImages: any = {
-        'BMW Cabrio': require('../../assets/images/bmw_cabrio.png'),
-        'Mustang Shelby GT': require('../../assets/images/mustang.png'),
-        'BMW i8': require('../../assets/images/bmw_i8.png'),
-        'Jaguar Silber': require('../../assets/images/jaguar.png'),
-        'Yellow Cab NYC': require('../../assets/images/taxi_render.png'),
-        'Executive Taxi': require('../../assets/images/taxi_render.png'),
-        'Yamaha R1M': require('../../assets/images/motorcycle_render.png'),
-        'Scooter Pro': require('../../assets/images/motorcycle_render.png'),
-        'City Hybrid': require('../../assets/images/bicycle_render.png'),
-        'Electric Cycle': require('../../assets/images/bicycle_render.png'),
-    };
-
-    const currentImage = vehicleImages[name as string] || vehicleImages['Mustang Shelby GT'];
-
     return (
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
@@ -51,26 +60,20 @@ export default function CarDetailsScreen() {
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-32 px-6`}>
                     <View style={tw`mt-4`}>
-                        <Text style={tw`text-3xl font-bold text-gray-800`}>{name || 'Mustang Shelby GT'}</Text>
+                        <Text style={tw`text-3xl font-bold text-gray-800`}>{vehicle.name}</Text>
                         <View style={tw`flex-row items-center mt-2`}>
                             <Ionicons name="star" size={18} color="#FBBF24" />
-                            <Text style={tw`ml-1 text-gray-800 font-medium`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
+                            <Text style={tw`ml-1 text-gray-800 font-medium`}>{vehicle.rating || '4.9'} <Text style={tw`text-gray-400 font-normal`}>({vehicle.reviews || '531'} reviews)</Text></Text>
                         </View>
                     </View>
 
-                    {/* Car Gallery */}
-                    <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
-                        <Pressable style={tw`p-2`}>
-                            <Ionicons name="chevron-back" size={24} color="#374151" />
-                        </Pressable>
+                    {/* Vehicle Image - Gallery Arrows Removed */}
+                    <View style={tw`items-center justify-center mt-8 mb-4`}>
                         <Image
-                            source={currentImage}
+                            source={vehicle.image}
                             style={tw`w-72 h-44`}
                             resizeMode="contain"
                         />
-                        <Pressable style={tw`p-2`}>
-                            <Ionicons name="chevron-forward" size={24} color="#374151" />
-                        </Pressable>
                     </View>
 
                     {/* Specifications */}
@@ -86,8 +89,24 @@ export default function CarDetailsScreen() {
                     </View>
 
                     {/* Car Features */}
-                    <Text style={tw`text-xl font-bold text-gray-800 mt-4 mb-4`}>Car features</Text>
-                    {features.map((feature, index) => (
+                    <Text style={tw`text-xl font-bold text-gray-800 mt-4 mb-4`}>Vehicle features</Text>
+                    <View key="model" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
+                        <Text style={tw`text-gray-500 font-medium`}>Model</Text>
+                        <Text style={tw`text-gray-800 font-bold`}>{vehicle.name}</Text>
+                    </View>
+                    {vehicle.vehicleNumber && (
+                        <View key="plate" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
+                            <Text style={tw`text-gray-500 font-medium`}>Plate Number</Text>
+                            <Text style={tw`text-gray-800 font-bold`}>{vehicle.vehicleNumber}</Text>
+                        </View>
+                    )}
+                    {vehicle.details?.isAC !== undefined && (
+                        <View key="ac" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
+                            <Text style={tw`text-gray-500 font-medium`}>Air Conditioning</Text>
+                            <Text style={tw`text-gray-800 font-bold`}>{vehicle.details.isAC ? 'Yes' : 'No'}</Text>
+                        </View>
+                    )}
+                    {!isMyCar && features.map((feature, index) => (
                         <View key={index} style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
                             <Text style={tw`text-gray-500 font-medium`}>{feature.label}</Text>
                             <Text style={tw`text-gray-800 font-bold`}>{feature.value}</Text>
@@ -105,7 +124,7 @@ export default function CarDetailsScreen() {
                     <Pressable
                         onPress={() => router.push({
                             pathname: '/(pages)/request-rent',
-                            params: { name: name }
+                            params: { name: vehicle.name }
                         })}
                         style={tw`flex-1 bg-[#10B981] py-4 rounded-xl items-center shadow-md`}
                     >

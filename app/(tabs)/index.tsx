@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import tw from 'twrnc';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const [mode, setMode] = useState<'transport' | 'delivery'>('transport');
@@ -27,7 +27,7 @@ export default function HomeScreen() {
         if (flowState === 'none') return null;
 
         return (
-            <View style={[tw`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40`, { height: flowState === 'selecting' ? '65%' : '50%' }]}>
+            <View style={[tw`absolute bottom-10 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40`, { height: flowState === 'selecting' ? '65%' : '50%' }]}>
                 {/* Drag Handle */}
                 <View style={tw`items-center py-4`}>
                     <View style={tw`w-16 h-1.5 bg-gray-200 rounded-full`} />
@@ -61,7 +61,7 @@ export default function HomeScreen() {
                                 <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 py-4 bg-white`}>
                                     <Ionicons name="location-outline" size={24} color="#9CA3AF" style={tw`mr-3`} />
                                     <TextInput
-                                        placeholder="United state"
+                                        placeholder="United States"
                                         style={tw`flex-1 text-base text-gray-800`}
                                         placeholderTextColor="#9CA3AF"
                                         onChangeText={(v) => setLocations(l => ({ ...l, to: v }))}
@@ -122,7 +122,10 @@ export default function HomeScreen() {
                             </View>
 
                             <Pressable
-                                onPress={() => router.push("/(pages)/select-transport")}
+                                onPress={() => router.push({
+                                    pathname: "/(pages)/select-transport",
+                                    params: { mode: mode }
+                                })}
                                 style={tw`bg-[#10B981] py-4 rounded-xl items-center shadow-lg w-full`}
                             >
                                 <Text style={tw`text-white font-bold text-lg`}>Confirm Location</Text>

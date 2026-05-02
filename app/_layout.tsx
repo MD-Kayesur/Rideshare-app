@@ -1,39 +1,72 @@
 import { Stack } from 'expo-router';
 import { Provider } from 'react-redux';
-import { store } from '../store';
-import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { store } from '../redux/store';
+import { useEffect, useState } from 'react';
+import { Platform, ActivityIndicator, View } from 'react-native';
+import { useAppDispatch } from '../redux/hooks';
+import { getItem } from '../redux/hooks/storage';
+import { setUser } from '../redux/features/auth/authSlice';
 
 // Only import CSS on web - NativeWind handles mobile automatically via Metro
 if (Platform.OS === 'web') {
   require('./global.css');
 }
 
+function RootLayoutNav() {
+  const dispatch = useAppDispatch();
+  const [isReady, setIsReady] = useState(false);
 
-
-export default function RootLayout() {
   useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const token = await getItem('accessToken');
+        const userData = await getItem('userData');
+        
+        if (token) {
+          const user = userData ? JSON.parse(userData) : null;
+          dispatch(setUser({ user, token }));
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    initializeAuth();
+
     if (Platform.OS === 'web') {
-      // Fix NativeWind color scheme for web
       try {
         const { StyleSheet } = require('react-native');
         if (StyleSheet.setFlag) {
           StyleSheet.setFlag('darkMode', 'class');
         }
-      } catch (e) {
-        // Ignore if not available
-      }
+      } catch (e) {}
     }
-  }, []);
+  }, [dispatch]);
+
+  if (!isReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
 
   return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="workout/[id]" />
+      <Stack.Screen name="+not-found" options={{ headerShown: true }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <Provider store={store}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="workout/[id]" />
-        <Stack.Screen name="+not-found" options={{ headerShown: true }} />
-      </Stack>
+      <RootLayoutNav />
     </Provider>
   );
 }

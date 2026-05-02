@@ -8,17 +8,26 @@ import {
   Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, usePathname } from "expo-router";
-import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
 import SafeScreen from "@/components/SafeScreen";
 import tw from 'twrnc';
 import { Image } from "react-native";
+import { useAppSelector } from "../redux/hooks";
+import { useCurrentToken } from "../redux/features/auth/authSlice";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function LandingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
+  const token = useAppSelector(useCurrentToken);
+
+  useEffect(() => {
+    if (token) {
+      router.replace("/(tabs)");
+    }
+  }, [token, router]);
 
   const onboardingSteps = [
     {
@@ -34,7 +43,7 @@ export default function LandingPage() {
     {
       title: "Book your car",
       description: "Sell houses easily with the help of Listenoryx and to make this line big I am writing more.",
-      image: require('../assets/images/Frame 1.png'),
+      image: require('../assets/images/frame_1.png'),
     }
   ];
 
