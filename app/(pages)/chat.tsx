@@ -20,7 +20,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { useCurrentUser } from '../../redux/features/auth/authSlice';
 
 export default function ChatScreen() {
-    const { chatId = 'default_chat_id' } = useLocalSearchParams(); // Get chatId from params
+    const { chatId = 'default_chat_id', userName, userAvatar } = useLocalSearchParams(); // Get chat info from params
     const user = useAppSelector(useCurrentUser);
     const { data: messagesData, isLoading } = useGetMessagesQuery(chatId);
     const [sendMessage] = useSendMessageMutation();
@@ -42,12 +42,6 @@ export default function ChatScreen() {
 
     const handleSend = async () => {
         if (inputText.trim()) {
-            const messageData = {
-                chatId,
-                content: inputText,
-                senderId: user?._id || 'guest_id',
-            };
-
             try {
                 // Clear input immediately for better UX
                 setInputText('');
@@ -69,12 +63,27 @@ export default function ChatScreen() {
             >
                 <SafeAreaView style={tw`flex-1`}>
                     {/* Header */}
-                    <View style={tw`flex-row items-center px-6 py-4 border-b border-gray-50`}>
-                        <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
+                    <View style={tw`flex-row items-center px-4 py-4 border-b border-gray-100`}>
+                        <Pressable onPress={() => router.back()} style={tw`p-2`}>
                             <Ionicons name="chevron-back" size={24} color="#374151" />
-                            <Text style={tw`text-lg text-gray-700 ml-1`}>Back</Text>
                         </Pressable>
-                        <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>Chat</Text>
+                        
+                        <View style={tw`flex-row items-center flex-1 ml-2`}>
+                            <View style={tw`w-10 h-10 rounded-full overflow-hidden border border-gray-100`}>
+                                <Image 
+                                    source={{ uri: (userAvatar as string) || 'https://avatar.iran.liara.run/public/boy' }} 
+                                    style={tw`w-full h-full`} 
+                                />
+                            </View>
+                            <View style={tw`ml-3`}>
+                                <Text style={tw`text-lg font-bold text-gray-800`}>{userName || 'Chat'}</Text>
+                                <Text style={tw`text-xs text-green-500`}>Online</Text>
+                            </View>
+                        </View>
+
+                        <Pressable style={tw`p-2`}>
+                            <Ionicons name="call-outline" size={22} color="#10B981" />
+                        </Pressable>
                     </View>
 
                     {/* Chat Content */}
@@ -86,10 +95,14 @@ export default function ChatScreen() {
                     >
                         {isLoading ? (
                             <Text style={tw`text-center mt-10 text-gray-400`}>Loading messages...</Text>
-                        ) : messages.map((msg: any) => {
-                            const isSent = msg.sender === user?._id || msg.sender?._id === user?._id;
+                                        ) : messages.map((msg: any, index: number) => {
+                            if (!msg) return null;
+                            const currentUserId = (user?._id || user?.id)?.toString();
+                            const senderId = (typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.id) : msg.sender)?.toString();
+                            const isSent = !!currentUserId && !!senderId && senderId === currentUserId;
+                            
                             return (
-                                <View key={msg._id || msg.id} style={tw`mb-6`}>
+                                <View key={msg._id || msg.id || `msg-${index}`} style={tw`mb-6`}>
                                     <View style={tw`flex-row ${isSent ? 'justify-end' : 'justify-start'}`}>
                                         {!isSent && (
                                             <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
@@ -98,7 +111,7 @@ export default function ChatScreen() {
                                         )}
                                         <View style={tw`max-w-[70%]`}>
                                             <View style={tw`px-4 py-3 rounded-2xl ${isSent ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
-                                                <Text style={tw`text-gray-700 text-base leading-5`}>{msg.content || msg.text}</Text>
+                                                <Text style={tw`text-gray-700 text-base leading-5`}>{msg.content || msg.text || ''}</Text>
                                             </View>
                                             <Text style={tw`text-gray-400 text-xs mt-1 ${isSent ? 'text-right' : 'text-left'}`}>
                                                 {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : msg.time}

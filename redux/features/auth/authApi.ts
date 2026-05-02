@@ -35,6 +35,13 @@ const authApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+    getAllUsers: builder.query({
+      query: () => ({
+        url: '/users',
+        method: 'GET',
+      }),
+      providesTags: ['User'],
+    }),
   }),
   overrideExisting: true,
 });
@@ -45,4 +52,5 @@ export const {
   useGetMeQuery,
   useVerifyOTPMutation,
   useResendOTPMutation,
+  useGetAllUsersQuery,
 } = authApi;

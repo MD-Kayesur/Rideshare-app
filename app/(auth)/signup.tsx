@@ -13,29 +13,89 @@ export default function SignUpScreen() {
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [role, setRole] = useState("rider");
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showGenderModal, setShowGenderModal] = useState(false);
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [showCountryModal, setShowCountryModal] = useState(false);
     const [selectedCountry, setSelectedCountry] = useState({ name: "Bangladesh", flag: "🇧🇩", code: "+880" });
+    const [nameError, setNameError] = useState("");
     const [emailError, setEmailError] = useState("");
     const [phoneError, setPhoneError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [confirmPasswordError, setConfirmPasswordError] = useState("");
+    const [genderError, setGenderError] = useState("");
+    const [roleError, setRoleError] = useState("");
     const [register, { isLoading }] = useRegisterMutation();
 
-    const isFormValid = name.trim() !== "" && email.includes("@") && phone.trim() !== "" && password.length >= 6 && agreed && gender !== "" && role !== "";
+    const validateForm = () => {
+        let isValid = true;
+        
+        if (name.trim() === "") {
+            setNameError("Name is required");
+            isValid = false;
+        } else {
+            setNameError("");
+        }
+
+        if (!email.includes("@")) {
+            setEmailError("Please enter a valid email address");
+            isValid = false;
+        } else {
+            setEmailError("");
+        }
+
+        if (phone.trim() === "") {
+            setPhoneError("Phone number is required");
+            isValid = false;
+        } else {
+            setPhoneError("");
+        }
+
+        if (password.length < 4) {
+            setPasswordError("Password must be at least 4 characters");
+            isValid = false;
+        } else {
+            setPasswordError("");
+        }
+
+        if (password !== confirmPassword) {
+            setConfirmPasswordError("Passwords do not match");
+            isValid = false;
+        } else {
+            setConfirmPasswordError("");
+        }
+
+        if (gender === "") {
+            setGenderError("Please select your gender");
+            isValid = false;
+        } else {
+            setGenderError("");
+        }
+
+        if (role === "") {
+            setRoleError("Please select a role");
+            isValid = false;
+        } else {
+            setRoleError("");
+        }
+
+        if (!agreed) {
+            Alert.alert("Agreement Required", "You must agree to the Terms and Privacy Policy.");
+            isValid = false;
+        }
+
+        return isValid;
+    };
 
     const handleSignUp = async () => {
+        if (!validateForm()) return;
+
         try {
             const fullPhone = `${selectedCountry.code}${phone}`;
 
-            console.log(fullPhone, 'fullPhone');
-            console.log(name, 'name');
-            console.log(email, 'email');
-            console.log(phone, 'phone');
-            console.log(gender, 'gender');
-            console.log(password, 'password');
-            console.log(role, 'role');
             const res = await register({
                 name,
                 email,
@@ -44,24 +104,30 @@ export default function SignUpScreen() {
                 password,
                 role
             }).unwrap();
-            console.log(res, 'res');
+            
             if (res.success) {
                 Alert.alert("Success", "Account created! Please verify your email.");
                 router.push({
                     pathname: "/(auth)/verify",
                     params: { 
                         email,
-                        code: res.data?.verificationCode // Pass code for practice purpose
+                        code: res.data?.verificationCode
                     }
                 });
             }
         } catch (error: any) {
             console.error('Signup error:', error);
             const errorMessage = error?.data?.message || "";
-            if (errorMessage.toLowerCase().includes("email")) {
+            const lowerMessage = errorMessage.toLowerCase();
+
+            if (lowerMessage.includes("email")) {
                 setEmailError(errorMessage);
-            } else if (errorMessage.toLowerCase().includes("phone")) {
+            } else if (lowerMessage.includes("phone") || lowerMessage.includes("mobile")) {
                 setPhoneError(errorMessage);
+            } else if (lowerMessage.includes("name")) {
+                setNameError(errorMessage);
+            } else if (lowerMessage.includes("password")) {
+                setPasswordError(errorMessage);
             } else {
                 Alert.alert("Error", errorMessage || "Something went wrong.");
             }
@@ -99,13 +165,19 @@ export default function SignUpScreen() {
 
                 <View style={tw`gap-5 pb-8`}>
                     {/* Name Input */}
-                    <TextInput
-                        placeholder="Name"
-                        value={name}
-                        onChangeText={setName}
-                        style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
-                        placeholderTextColor="#ccc"
-                    />
+                    <View>
+                        <TextInput
+                            placeholder="Name"
+                            value={name}
+                            onChangeText={(text) => {
+                                setName(text);
+                                setNameError("");
+                            }}
+                            style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white ${nameError ? 'border-red-500' : ''}`}
+                            placeholderTextColor="#ccc"
+                        />
+                        {nameError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{nameError}</Text> : null}
+                    </View>
 
                     {/* Email Input */}
                     <View>
@@ -153,22 +225,53 @@ export default function SignUpScreen() {
                     </View>
 
                     {/* Password Input */}
-                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 bg-white`}>
-                        <TextInput
-                            placeholder="Password"
-                            value={password}
-                            onChangeText={setPassword}
-                            style={tw`flex-1 py-4 text-base`}
-                            placeholderTextColor="#ccc"
-                            secureTextEntry={!showPassword}
-                        />
-                        <Pressable onPress={() => setShowPassword(!showPassword)}>
-                            <Ionicons 
-                                name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                                size={24} 
-                                color="#999" 
+                    <View>
+                        <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 bg-white ${passwordError ? 'border-red-500' : ''}`}>
+                            <TextInput
+                                placeholder="Password"
+                                value={password}
+                                onChangeText={(text) => {
+                                    setPassword(text);
+                                    setPasswordError("");
+                                }}
+                                style={tw`flex-1 py-4 text-base`}
+                                placeholderTextColor="#ccc"
+                                secureTextEntry={!showPassword}
                             />
-                        </Pressable>
+                            <Pressable onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons 
+                                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                    size={24} 
+                                    color="#999" 
+                                />
+                            </Pressable>
+                        </View>
+                        {passwordError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{passwordError}</Text> : null}
+                    </View>
+
+                    {/* Confirm Password Input */}
+                    <View>
+                        <View style={tw`flex-row items-center border border-gray-200 rounded-xl px-4 bg-white ${confirmPasswordError ? 'border-red-500' : ''}`}>
+                            <TextInput
+                                placeholder="Confirm Password"
+                                value={confirmPassword}
+                                onChangeText={(text) => {
+                                    setConfirmPassword(text);
+                                    setConfirmPasswordError("");
+                                }}
+                                style={tw`flex-1 py-4 text-base`}
+                                placeholderTextColor="#ccc"
+                                secureTextEntry={!showConfirmPassword}
+                            />
+                            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                <Ionicons 
+                                    name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                                    size={24} 
+                                    color="#999" 
+                                />
+                            </Pressable>
+                        </View>
+                        {confirmPasswordError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{confirmPasswordError}</Text> : null}
                     </View>
 
                     {/* Country Modal */}
@@ -204,15 +307,18 @@ export default function SignUpScreen() {
                     </Modal>
 
                     {/* Gender Selection */}
-                    <Pressable
-                        onPress={() => setShowGenderModal(true)}
-                        style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white`}
-                    >
-                        <Text style={[tw`text-base`, gender ? tw`text-gray-800` : tw`text-gray-300`]}>
-                            {gender || "Gender"}
-                        </Text>
-                        <Ionicons name="chevron-down" size={20} color="#666" />
-                    </Pressable>
+                    <View>
+                        <Pressable
+                            onPress={() => setShowGenderModal(true)}
+                            style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white ${genderError ? 'border-red-500' : ''}`}
+                        >
+                            <Text style={[tw`text-base`, gender ? tw`text-gray-800` : tw`text-gray-300`]}>
+                                {gender || "Gender"}
+                            </Text>
+                            <Ionicons name="chevron-down" size={20} color="#666" />
+                        </Pressable>
+                        {genderError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{genderError}</Text> : null}
+                    </View>
 
                     {/* Modal for Gender */}
                     <Modal
@@ -231,10 +337,11 @@ export default function SignUpScreen() {
                                 {genderOptions.map((option, index) => (
                                     <Pressable
                                         key={option}
-                                        onPress={() => {
-                                            setGender(option);
-                                            setShowGenderModal(false);
-                                        }}
+                                            onPress={() => {
+                                                setGender(option);
+                                                setGenderError("");
+                                                setShowGenderModal(false);
+                                            }}
                                         style={tw`py-4 border-b border-gray-100 ${index === genderOptions.length - 1 ? 'border-b-0' : ''}`}
                                     >
                                         <Text style={tw`text-lg text-gray-700 text-center`}>{option}</Text>
@@ -245,15 +352,18 @@ export default function SignUpScreen() {
                     </Modal>
 
                     {/* Role Selection */}
-                    <Pressable
-                        onPress={() => setShowRoleModal(true)}
-                        style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white`}
-                    >
-                        <Text style={[tw`text-base`, role ? tw`text-gray-800` : tw`text-gray-300`]}>
-                            {roleOptions.find(opt => opt.value === role)?.label || "Select Role"}
-                        </Text>
-                        <Ionicons name="chevron-down" size={20} color="#666" />
-                    </Pressable>
+                    <View>
+                        <Pressable
+                            onPress={() => setShowRoleModal(true)}
+                            style={tw`flex-row items-center justify-between border border-gray-200 rounded-xl px-4 py-4 bg-white ${roleError ? 'border-red-500' : ''}`}
+                        >
+                            <Text style={[tw`text-base`, role ? tw`text-gray-800` : tw`text-gray-300`]}>
+                                {roleOptions.find(opt => opt.value === role)?.label || "Select Role"}
+                            </Text>
+                            <Ionicons name="chevron-down" size={20} color="#666" />
+                        </Pressable>
+                        {roleError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{roleError}</Text> : null}
+                    </View>
 
                     {/* Modal for Role */}
                     <Modal
@@ -272,10 +382,11 @@ export default function SignUpScreen() {
                                 {roleOptions.map((option, index) => (
                                     <Pressable
                                         key={option.value}
-                                        onPress={() => {
-                                            setRole(option.value);
-                                            setShowRoleModal(false);
-                                        }}
+                                            onPress={() => {
+                                                setRole(option.value);
+                                                setRoleError("");
+                                                setShowRoleModal(false);
+                                            }}
                                         style={tw`py-4 border-b border-gray-100 ${index === roleOptions.length - 1 ? 'border-b-0' : ''}`}
                                     >
                                         <Text style={tw`text-lg text-gray-700 text-center`}>{option.label}</Text>
@@ -301,10 +412,10 @@ export default function SignUpScreen() {
                     {/* Sign Up Button */}
                     <Pressable
                         onPress={handleSignUp}
-                        disabled={!isFormValid || isLoading}
-                        style={tw`flex-row items-center justify-center border ${isFormValid && !isLoading ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
+                        disabled={isLoading}
+                        style={tw`flex-row items-center justify-center border ${!isLoading ? 'border-[#10B981] bg-white' : 'border-gray-200 bg-gray-50'} py-3 rounded-xl gap-3`}
                     >
-                        <Text style={[tw`font-bold text-lg`, isFormValid && !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
+                        <Text style={[tw`font-bold text-lg`, !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
                             {isLoading ? "Signing Up..." : "Sign Up"}
                         </Text>
                     </Pressable>

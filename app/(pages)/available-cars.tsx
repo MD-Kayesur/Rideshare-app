@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
+import { useGetNearbyDriversQuery } from '../../redux/features/driver/driverApi';
+import { useAppSelector } from '../../redux/hooks';
 
 export const transportData: Record<string, any[]> = {
     'Car': [
@@ -58,8 +60,34 @@ export const transportData: Record<string, any[]> = {
 
 export default function AvailableCarsScreen() {
     const { transportType } = useLocalSearchParams();
+    const user = useAppSelector(state => state.auth.user);
     const currentTransportType = (transportType as string) || 'Car';
-    const vehicles = transportData[currentTransportType] || transportData['Car'];
+    
+    // Fetch real nearby drivers (using user location or default)
+    const { data: nearbyData, isLoading } = useGetNearbyDriversQuery({
+        lat: user?.currentLocation?.coordinates[1] || 23.8103, // Default to Dhaka
+        lng: user?.currentLocation?.coordinates[0] || 90.4125,
+        vehicleType: currentTransportType.toLowerCase()
+    });
+
+    const staticVehicles = transportData[currentTransportType] || transportData['Car'];
+    
+    // Format real drivers to match the UI structure
+    const realDrivers = nearbyData?.data?.map((d: any) => ({
+        id: d._id,
+        name: d.vehicleModel,
+        transmission: 'Automatic', // Static for now
+        seats: d.vehicleType === 'car' ? 4 : 2,
+        fuel: d.details?.isAC ? 'AC' : 'Non-AC',
+        distance: d.distance || '200m',
+        time: '3mins away',
+        image: d.vehicleImage ? { uri: d.vehicleImage } : staticVehicles[0].image,
+        isReal: true,
+        userId: d.user?._id
+    })) || [];
+
+    // Combine real drivers with static ones if list is short
+    const vehicles = realDrivers.length > 0 ? realDrivers : staticVehicles;
 
     return (
         <View style={tw`flex-1 bg-white`}>
@@ -109,7 +137,12 @@ export default function AvailableCarsScreen() {
                             <Pressable
                                 onPress={() => router.push({
                                     pathname: '/(pages)/car-details',
-                                    params: { carId: vehicle.id, name: vehicle.name, transportType: currentTransportType }
+                                    params: { 
+                                        carId: vehicle.id, 
+                                        name: vehicle.name, 
+                                        transportType: currentTransportType,
+                                        driverId: vehicle.isReal ? vehicle.userId : undefined
+                                    }
                                 })}
                                 style={tw`bg-white border border-[#10B981] py-4 rounded-xl items-center`}
                             >
