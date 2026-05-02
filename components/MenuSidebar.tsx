@@ -5,6 +5,8 @@ import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import tw from 'twrnc';
 
+import { useAppSelector } from "../redux/hooks";
+
 interface MenuSidebarProps {
     isOpen: boolean;
     onClose: () => void;
@@ -14,8 +16,10 @@ interface MenuSidebarProps {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
+    const user = useAppSelector((state) => state.auth.user);
     const menuItems = [
         { id: '1', title: 'History', icon: 'file', provider: 'Octicons', route: '/(pages)/history' },
+        { id: '1a', title: 'Messages', icon: 'chatbubbles-outline', provider: 'Ionicons', route: '/(pages)/chat-history' },
         { id: '2', title: 'Complain', icon: 'chatbubble-ellipses-outline', provider: 'Ionicons', route: '/(pages)/complain' },
         { id: '3', title: 'Referral', icon: 'account-group-outline', provider: 'MaterialCommunityIcons', route: '/(pages)/referral' },
         { id: '4', title: 'About Us', icon: 'info', provider: 'Octicons', route: '/(pages)/about' },
@@ -53,22 +57,22 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                 ]}
             >
                 <SafeAreaView style={tw`flex-1`}>
-                    <View style={tw`px-10 pt-10 pb-8`}>
+                    <View style={tw`px-10 pt-6 `}>
                         <Pressable onPress={onClose} style={tw`flex-row items-center mb-10`}>
                             <Ionicons name="chevron-back" size={28} color="#333" />
                             <Text style={tw`text-xl text-gray-800 ml-1 font-medium`}>Back</Text>
                         </Pressable>
 
-                        <View style={tw`mb-8`}>
+                        <View style={tw`mb-6`}>
                             <View style={tw`w-28 h-28 rounded-full items-center justify-center overflow-hidden mb-4 border-2 border-[#10B981]/20 p-1`}>
                                 <Image
-                                    source={require("../assets/images/image.png")}
+                                    source={user?.avatar ? { uri: user.avatar } : require("../assets/images/image.png")}
                                     style={tw`w-full h-full rounded-full bg-[#E0F2FE]`}
                                     resizeMode="cover"
                                 />
                             </View>
-                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>MD Kayesur Rahman</Text>
-                            <Text style={tw`text-base text-gray-500`}>kayesur@gmail.com</Text>
+                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>{user?.name || 'User Name'}</Text>
+                            <Text style={tw`text-base text-gray-500`}>{user?.email || 'user@email.com'}</Text>
                         </View>
                     </View>
 
