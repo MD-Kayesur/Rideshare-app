@@ -5,8 +5,12 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import tw from 'twrnc';
 import * as ImagePicker from 'expo-image-picker';
-import { useCreateDriverMutation, useGetMyDriverProfileQuery, useUpdateDriverProfileMutation } from "../../redux/features/driver/driverApi";
-import { useUploadImageMutation } from "../../redux/features/upload/uploadApi";
+import { 
+    useCreateDriverMutation, 
+    useGetMyDriverProfileQuery, 
+    useUpdateDriverProfileMutation, 
+    useUploadImageMutation 
+} from "../../redux/features/driver/driverApi";
 
 export default function AddVehicleScreen() {
     const { type = 'car' } = useLocalSearchParams<{ type: string }>();

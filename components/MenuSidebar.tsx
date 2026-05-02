@@ -85,6 +85,38 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                     </View>
 
                     <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+                        {user?.role === 'admin' && (
+                            <View style={tw`border-b border-gray-100 bg-[#10B981]/5`}>
+                                <Pressable
+                                    onPress={() => {
+                                        onClose();
+                                        router.push('/(pages)/admin-dashboard');
+                                    }}
+                                    style={tw`flex-row items-center px-10 py-4`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="shield-checkmark-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4`}>Admin Dashboard</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => {
+                                        onClose();
+                                        router.push('/(pages)/admin-notifications');
+                                    }}
+                                    style={tw`flex-row items-center px-10 py-4 border-t border-[#10B981]/10`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="notifications-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4`}>Notifications</Text>
+                                    <View style={tw`ml-auto bg-red-500 w-5 h-5 rounded-full items-center justify-center`}>
+                                        <Text style={tw`text-white text-[10px] font-bold`}>!</Text>
+                                    </View>
+                                </Pressable>
+                            </View>
+                        )}
+
                         {user?.role === 'driver' && (
                             <View style={tw`border-b border-gray-50`}>
                                 <Pressable
