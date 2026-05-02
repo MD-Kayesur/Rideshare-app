@@ -1,4 +1,4 @@
-import { baseApi } from '../hooks/baseApi';
+import { baseApi } from '../../hooks/baseApi';
 
 export const rideApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
