@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, Image, Animated, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
@@ -17,6 +17,14 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
     const user = useAppSelector((state) => state.auth.user);
+    const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
+
+    const vehicleTypes = [
+        { id: 'v1', title: 'Car', icon: 'car-outline' },
+        { id: 'v2', title: 'Bike', icon: 'bicycle-outline' },
+        { id: 'v3', title: 'Cycle', icon: 'bicycle-outline' },
+        { id: 'v4', title: 'CNG', icon: 'car-sport-outline' },
+    ];
     const menuItems = [
         { id: '1', title: 'History', icon: 'file', provider: 'Octicons', route: '/(pages)/history' },
         { id: '1a', title: 'Messages', icon: 'chatbubbles-outline', provider: 'Ionicons', route: '/chat_history' },
@@ -77,6 +85,46 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                     </View>
 
                     <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+                        {user?.role === 'driver' && (
+                            <View style={tw`border-b border-gray-50`}>
+                                <Pressable
+                                    onPress={() => setIsAddVehicleOpen(!isAddVehicleOpen)}
+                                    style={tw`flex-row items-center px-10 py-3`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="add-circle-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4 flex-1`}>Add Vehicle</Text>
+                                    <Ionicons 
+                                        name={isAddVehicleOpen ? "chevron-up" : "chevron-down"} 
+                                        size={20} 
+                                        color="#10B981" 
+                                    />
+                                </Pressable>
+
+                                {isAddVehicleOpen && (
+                                    <View style={tw`bg-gray-50/50 py-1`}>
+                                        {vehicleTypes.map(v => (
+                                            <Pressable
+                                                key={v.id}
+                                                onPress={() => {
+                                                    onClose();
+                                                    router.push({
+                                                        pathname: "/(pages)/add-vehicle" as any,
+                                                        params: { type: v.title.toLowerCase() }
+                                                    });
+                                                }}
+                                                style={tw`flex-row items-center px-16 py-2.5`}
+                                            >
+                                                <Ionicons name={v.icon as any} size={18} color="#6B7280" />
+                                                <Text style={tw`text-base text-gray-600 ml-3`}>{v.title}</Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                )}
+                            </View>
+                        )}
+
                         {menuItems.map(item => (
                             <Pressable
                                 key={item.id}

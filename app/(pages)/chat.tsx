@@ -97,9 +97,9 @@ export default function ChatScreen() {
                             <Text style={tw`text-center mt-10 text-gray-400`}>Loading messages...</Text>
                                         ) : messages.map((msg: any, index: number) => {
                             if (!msg) return null;
-                            const currentUserId = user?._id || user?.id;
-                            const senderId = msg.sender?._id || msg.sender?.id || (typeof msg.sender === 'string' ? msg.sender : null);
-                            const isSent = !!currentUserId && !!senderId && senderId.toString() === currentUserId.toString();
+                            const currentUserId = (user?._id || user?.id)?.toString();
+                            const senderId = (typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.id) : msg.sender)?.toString();
+                            const isSent = !!currentUserId && !!senderId && senderId === currentUserId;
                             
                             return (
                                 <View key={msg._id || msg.id || `msg-${index}`} style={tw`mb-6`}>

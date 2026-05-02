@@ -17,14 +17,15 @@ export default function ChatHistoryScreen() {
 
     const renderChatItem = ({ item }: { item: any }) => {
         // Find the other participant (the person who is NOT the current user)
-        const currentUserId = user?._id || user?.id;
+        const currentUserId = (user?._id || user?.id)?.toString();
+        
         const otherParticipant = item.participants?.find((p: any) => {
-            const pId = typeof p === 'string' ? p : (p._id || p.id);
-            return !!pId && !!currentUserId && pId.toString() !== currentUserId.toString();
-        }) || (item.participants?.find((p: any) => {
-            const pId = typeof p === 'string' ? p : (p._id || p.id);
-            return !!pId && pId.toString() !== currentUserId?.toString();
-        })) || {};
+            const pId = (typeof p === 'object' ? (p._id || p.id) : p)?.toString();
+            return pId && currentUserId && pId !== currentUserId;
+        }) || item.participants?.find((p: any) => {
+            const pId = (typeof p === 'object' ? (p._id || p.id) : p)?.toString();
+            return pId && pId !== currentUserId;
+        }) || (typeof item.participants?.[0] === 'object' ? item.participants?.[0] : {});
 
         const lastMessage = item.lastMessage;
 
