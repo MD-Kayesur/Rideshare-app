@@ -17,12 +17,17 @@ export const useChatSocket = (chatId?: string) => {
       // Manually update the cache for getMessages query
       dispatch(
         chatApi.util.updateQueryData('getMessages' as any, chatId as any, (draft: any) => {
-          // Ensure draft.data exists and the message isn't already there
-          if (draft?.data) {
-            const exists = draft.data.some((m: any) => (m._id || m.id) === (message._id || message.id));
+          const processData = (data: any[]) => {
+            const exists = data.some((m: any) => (m._id || m.id) === (message._id || message.id));
             if (!exists) {
-              draft.data.push(message);
+              data.push(message);
             }
+          };
+
+          if (draft && draft.data && Array.isArray(draft.data)) {
+            processData(draft.data);
+          } else if (Array.isArray(draft)) {
+            processData(draft);
           }
         })
       );

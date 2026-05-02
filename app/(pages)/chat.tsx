@@ -86,10 +86,13 @@ export default function ChatScreen() {
                     >
                         {isLoading ? (
                             <Text style={tw`text-center mt-10 text-gray-400`}>Loading messages...</Text>
-                        ) : messages.map((msg: any) => {
-                            const isSent = msg.sender === user?._id || msg.sender?._id === user?._id;
+                                        ) : messages.map((msg: any) => {
+                            const senderId = typeof msg.sender === 'string' ? msg.sender : msg.sender?._id || msg.sender?.id;
+                            const currentUserId = user?._id || user?.id;
+                            const isSent = senderId?.toString() === currentUserId?.toString();
+                            
                             return (
-                                <View key={msg._id || msg.id} style={tw`mb-6`}>
+                                <View key={msg._id || msg.id || Math.random().toString()} style={tw`mb-6`}>
                                     <View style={tw`flex-row ${isSent ? 'justify-end' : 'justify-start'}`}>
                                         {!isSent && (
                                             <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
