@@ -82,11 +82,11 @@ export default function RequestRentScreen() {
             try {
                 const rideData = {
                     pickupLocation: {
-                        coordinates: [23.8103, 90.4125], // Mock coordinates for "Current location"
+                        coordinates: [90.4125, 23.8103], // Mock coordinates for "Current location"
                         address: "2972 Westheimer Rd. Santa Ana, Illinois 85486"
                     },
                     destinationLocation: {
-                        coordinates: [23.7940, 90.4043], // Mock coordinates for "Office"
+                        coordinates: [90.4043, 23.7940], // Mock coordinates for "Office"
                         address: "1901 Thornridge Cir. Shiloh, Hawaii 81063"
                     },
                     fare: 220,
