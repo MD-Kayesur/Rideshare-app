@@ -18,9 +18,8 @@ export const chatApi = baseApi.injectEndpoints({
       }),
       async onQueryStarted({ chatId, content }, { dispatch, queryFulfilled, getState }) {
         const user = (getState() as any).auth.user;
+        const tempId = `temp-${Date.now()}`;
         
-        // 1. Optimistic Update (Immediate)
-        const tempId = Date.now().toString();
         const optimisticMessage = {
           _id: tempId,
           content,
@@ -28,6 +27,7 @@ export const chatApi = baseApi.injectEndpoints({
           createdAt: new Date().toISOString(),
         };
 
+        // 1. Add optimistic message
         const patchResult = dispatch(
           chatApi.util.updateQueryData('getMessages' as any, chatId, (draft: any) => {
             const list = draft?.data || (Array.isArray(draft) ? draft : null);
@@ -38,29 +38,28 @@ export const chatApi = baseApi.injectEndpoints({
         );
 
         try {
-          // 2. Wait for server response
           const { data: response } = await queryFulfilled;
           const realMessage = response.data || response;
 
-          // 3. Update cache with real server data (Replace optimistic)
+          // 2. Replace optimistic with real data
           dispatch(
             chatApi.util.updateQueryData('getMessages' as any, chatId, (draft: any) => {
               const list = draft?.data || (Array.isArray(draft) ? draft : null);
               if (list) {
-                // Find and replace the optimistic message or just push the real one
+                // Remove the optimistic one
                 const index = list.findIndex((m: any) => m._id === tempId);
                 if (index !== -1) {
-                  list[index] = realMessage;
-                } else {
-                  // If not found (maybe socket already added it), ensure it's there
-                  const exists = list.some((m: any) => (m._id || m.id) === (realMessage._id || realMessage.id));
-                  if (!exists) list.push(realMessage);
+                  list.splice(index, 1);
+                }
+                // Add the real one if it's not already there (e.g. from socket)
+                const exists = list.some((m: any) => (m._id || m.id) === (realMessage._id || realMessage.id));
+                if (!exists) {
+                  list.push(realMessage);
                 }
               }
             })
           );
         } catch {
-          // 4. Rollback on failure
           patchResult.undo();
         }
       },

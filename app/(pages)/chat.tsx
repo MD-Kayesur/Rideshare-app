@@ -86,13 +86,15 @@ export default function ChatScreen() {
                     >
                         {isLoading ? (
                             <Text style={tw`text-center mt-10 text-gray-400`}>Loading messages...</Text>
-                                        ) : messages.map((msg: any) => {
-                            const senderId = typeof msg.sender === 'string' ? msg.sender : msg.sender?._id || msg.sender?.id;
+                                        ) : messages.map((msg: any, index: number) => {
+                            if (!msg) return null;
+                            const senderObj = msg.sender || {};
+                            const senderId = typeof senderObj === 'string' ? senderObj : senderObj._id || senderObj.id;
                             const currentUserId = user?._id || user?.id;
-                            const isSent = senderId?.toString() === currentUserId?.toString();
+                            const isSent = senderId && currentUserId && senderId.toString() === currentUserId.toString();
                             
                             return (
-                                <View key={msg._id || msg.id || Math.random().toString()} style={tw`mb-6`}>
+                                <View key={msg._id || msg.id || `msg-${index}`} style={tw`mb-6`}>
                                     <View style={tw`flex-row ${isSent ? 'justify-end' : 'justify-start'}`}>
                                         {!isSent && (
                                             <View style={tw`w-10 h-10 rounded-full mr-3 overflow-hidden border border-gray-100`}>
@@ -101,7 +103,7 @@ export default function ChatScreen() {
                                         )}
                                         <View style={tw`max-w-[70%]`}>
                                             <View style={tw`px-4 py-3 rounded-2xl ${isSent ? 'bg-[#E6F7F1] rounded-tr-none' : 'bg-gray-100 rounded-tl-none'}`}>
-                                                <Text style={tw`text-gray-700 text-base leading-5`}>{msg.content || msg.text}</Text>
+                                                <Text style={tw`text-gray-700 text-base leading-5`}>{msg.content || msg.text || ''}</Text>
                                             </View>
                                             <Text style={tw`text-gray-400 text-xs mt-1 ${isSent ? 'text-right' : 'text-left'}`}>
                                                 {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : msg.time}
