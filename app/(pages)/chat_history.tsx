@@ -16,9 +16,15 @@ export default function ChatHistoryScreen() {
     const chats = chatsData?.data || (Array.isArray(chatsData) ? chatsData : []);
 
     const renderChatItem = ({ item }: { item: any }) => {
-        const otherParticipant = item.participants?.find(
-            (p: any) => (p._id || p.id)?.toString() !== (user?._id || user?.id)?.toString()
-        ) || item.participants?.[0];
+        // Find the other participant (the person who is NOT the current user)
+        const currentUserId = user?._id || user?.id;
+        const otherParticipant = item.participants?.find((p: any) => {
+            const pId = typeof p === 'string' ? p : (p._id || p.id);
+            return !!pId && !!currentUserId && pId.toString() !== currentUserId.toString();
+        }) || (item.participants?.find((p: any) => {
+            const pId = typeof p === 'string' ? p : (p._id || p.id);
+            return !!pId && pId.toString() !== currentUserId?.toString();
+        })) || {};
 
         const lastMessage = item.lastMessage;
 
@@ -26,7 +32,11 @@ export default function ChatHistoryScreen() {
             <Pressable
                 onPress={() => router.push({
                     pathname: '/(pages)/chat',
-                    params: { chatId: item._id }
+                    params: { 
+                        chatId: item._id,
+                        userName: otherParticipant?.name,
+                        userAvatar: otherParticipant?.avatar
+                    }
                 })}
                 style={tw`flex-row items-center p-4 bg-white border-b border-gray-100`}
             >

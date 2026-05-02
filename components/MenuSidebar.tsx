@@ -19,7 +19,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
     const user = useAppSelector((state) => state.auth.user);
     const menuItems = [
         { id: '1', title: 'History', icon: 'file', provider: 'Octicons', route: '/(pages)/history' },
-        { id: '1a', title: 'Messages', icon: 'chatbubbles-outline', provider: 'Ionicons', route: '/(pages)/chat-history' },
+        { id: '1a', title: 'Messages', icon: 'chatbubbles-outline', provider: 'Ionicons', route: '/chat_history' },
         { id: '2', title: 'Complain', icon: 'chatbubble-ellipses-outline', provider: 'Ionicons', route: '/(pages)/complain' },
         { id: '3', title: 'Referral', icon: 'account-group-outline', provider: 'MaterialCommunityIcons', route: '/(pages)/referral' },
         { id: '4', title: 'About Us', icon: 'info', provider: 'Octicons', route: '/(pages)/about' },
