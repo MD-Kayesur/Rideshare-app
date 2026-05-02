@@ -14,15 +14,34 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
     const [login, { isLoading }] = useLoginMutation();
     const dispatch = useAppDispatch();
 
-    const isFormValid = identifier.includes("@") && password.trim() !== "";
+    const validateForm = () => {
+        let isValid = true;
+        if (!identifier.includes("@")) {
+            setEmailError("Please enter a valid email address");
+            isValid = false;
+        } else {
+            setEmailError("");
+        }
+
+        if (password.trim() === "") {
+            setPasswordError("Password is required");
+            isValid = false;
+        } else {
+            setPasswordError("");
+        }
+        return isValid;
+    };
 
     const handleLogin = async () => {
+        if (!validateForm()) return;
+
         try {
             const res = await login({ email: identifier, password }).unwrap();
-            console.log('Login response:', res);
             
             if (res.success && res.data) {
                 const { accessToken, user } = res.data;
@@ -39,7 +58,16 @@ export default function LoginScreen() {
             }
         } catch (error: any) {
             console.error('Login error:', error);
-            Alert.alert("Error", error?.data?.message || "Something went wrong. Please try again.");
+            const errorMessage = error?.data?.message || "";
+            const lowerMessage = errorMessage.toLowerCase();
+
+            if (lowerMessage.includes("user") || lowerMessage.includes("email") || lowerMessage.includes("found")) {
+                setEmailError(errorMessage);
+            } else if (lowerMessage.includes("password")) {
+                setPasswordError(errorMessage);
+            } else {
+                Alert.alert("Error", errorMessage || "Something went wrong. Please try again.");
+            }
         }
     };
 
@@ -66,29 +94,41 @@ export default function LoginScreen() {
 
                 <View style={tw`gap-5`}>
                     {/* Email/Phone Input */}
-                    <TextInput
-                        placeholder="Email"
-                        value={identifier}
-                        onChangeText={setIdentifier}
-                        style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white`}
-                        placeholderTextColor="#ccc"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                    />
+                    <View>
+                        <TextInput
+                            placeholder="Email"
+                            value={identifier}
+                            onChangeText={(text) => {
+                                setIdentifier(text);
+                                setEmailError("");
+                            }}
+                            style={tw`border border-gray-200 rounded-xl px-4 py-4 text-base bg-white ${emailError ? 'border-red-500' : ''}`}
+                            placeholderTextColor="#ccc"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        {emailError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{emailError}</Text> : null}
+                    </View>
 
                     {/* Password Input */}
-                    <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white px-4`}>
-                        <TextInput
-                            placeholder="Enter Your Password"
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry={!showPassword}
-                            style={tw`flex-1 py-4 text-base`}
-                            placeholderTextColor="#ccc"
-                        />
-                        <Pressable onPress={() => setShowPassword(!showPassword)}>
-                            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#ccc" />
-                        </Pressable>
+                    <View>
+                        <View style={tw`flex-row items-center border border-gray-200 rounded-xl bg-white px-4 ${passwordError ? 'border-red-500' : ''}`}>
+                            <TextInput
+                                placeholder="Enter Your Password"
+                                value={password}
+                                onChangeText={(text) => {
+                                    setPassword(text);
+                                    setPasswordError("");
+                                }}
+                                secureTextEntry={!showPassword}
+                                style={tw`flex-1 py-4 text-base`}
+                                placeholderTextColor="#ccc"
+                            />
+                            <Pressable onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#ccc" />
+                            </Pressable>
+                        </View>
+                        {passwordError ? <Text style={tw`text-red-500 text-xs mt-1 ml-1`}>{passwordError}</Text> : null}
                     </View>
 
                     <Pressable style={tw`items-end`} onPress={() => router.push("/(auth)/verification")}>
@@ -98,13 +138,13 @@ export default function LoginScreen() {
                     {/* Login Button */}
                     <Pressable
                         onPress={handleLogin}
-                        disabled={!isFormValid || isLoading}
+                        disabled={isLoading}
                         style={[
                             tw`flex-row items-center justify-center border py-3 rounded-xl gap-3`,
-                            isFormValid && !isLoading ? tw`border-[#10B981] bg-white` : tw`border-gray-200 bg-gray-50`
+                            !isLoading ? tw`border-[#10B981] bg-white` : tw`border-gray-200 bg-gray-50`
                         ]}
                     >
-                        <Text style={[tw`font-bold text-lg`, isFormValid && !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
+                        <Text style={[tw`font-bold text-lg`, !isLoading ? tw`text-[#10B981]` : tw`text-gray-300`]}>
                             {isLoading ? "Logging in..." : "Login"}
                         </Text>
                     </Pressable>

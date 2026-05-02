@@ -5,17 +5,14 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import tw from 'twrnc';
 import { router } from "expo-router";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { logout, useCurrentUser } from "../../redux/features/auth/authSlice";
+import { deleteItem } from "../../redux/hooks/storage";
 
 export default function ProfileScreen() {
   const [image, setImage] = useState<string | null>(null);
-
-  const [profile] = useState({
-    name: 'Kayesur',
-    email: 'Kaeysr@gmail.com',
-    phone: '+880 01926360430',
-    gender: 'Male',
-    address: 'Asfsdfsdfssfg, Dhaka'
-  });
+  const user = useAppSelector(useCurrentUser);
+  const dispatch = useAppDispatch();
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -43,7 +40,12 @@ export default function ProfileScreen() {
         {
           text: "Logout",
           style: "destructive",
-          onPress: () => {
+          onPress: async () => {
+            // Clear storage
+            await deleteItem('accessToken');
+            await deleteItem('userData');
+            // Clear Redux
+            dispatch(logout());
             router.dismissAll();
             router.replace('/(auth)/login');
           }
@@ -59,7 +61,7 @@ export default function ProfileScreen() {
       </View>
       <View style={tw`flex-1`}>
         <Text style={tw`text-xs text-gray-400 font-medium mb-1 uppercase tracking-wider`}>{label}</Text>
-        <Text style={tw`text-lg font-bold text-gray-800`}>{value}</Text>
+        <Text style={tw`text-lg font-bold text-gray-800`}>{value || 'Not set'}</Text>
       </View>
     </View>
   );
@@ -89,7 +91,7 @@ export default function ProfileScreen() {
                     <Image source={{ uri: image }} style={tw`w-full h-full`} />
                   ) : (
                     <Image
-                      source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=' + profile.name }}
+                      source={{ uri: user?.avatar || 'https://avatar.iran.liara.run/public/boy?username=' + (user?.name || 'User') }}
                       style={tw`w-full h-full`}
                       resizeMode="cover"
                     />
@@ -103,17 +105,17 @@ export default function ProfileScreen() {
                 <Ionicons name="camera" size={24} color="#10B981" />
               </Pressable>
             </View>
-            <Text style={tw`text-3xl font-black text-gray-800 mt-6`}>{profile.name}</Text>
+            <Text style={tw`text-3xl font-black text-gray-800 mt-6`}>{user?.name || 'Guest User'}</Text>
             <Text style={tw`text-base text-gray-400 mt-1`}>Member since April 2024</Text>
           </View>
 
-          {/* Read-only Data Display */}
+          {/* User Data Display */}
           <View style={tw`mt-2`}>
-            <ProfileItem label="Full Name" value={profile.name} icon="person-outline" />
-            <ProfileItem label="Email Address" value={profile.email} icon="mail-outline" />
-            <ProfileItem label="Phone Number" value={profile.phone} icon="call-outline" />
-            <ProfileItem label="Gender" value={profile.gender} icon="transgender-outline" />
-            <ProfileItem label="Residential Address" value={profile.address} icon="location-outline" />
+            <ProfileItem label="Full Name" value={user?.name} icon="person-outline" />
+            <ProfileItem label="Email Address" value={user?.email} icon="mail-outline" />
+            <ProfileItem label="Phone Number" value={user?.phone} icon="call-outline" />
+            <ProfileItem label="Gender" value={user?.gender} icon="transgender-outline" />
+            <ProfileItem label="Role" value={user?.role} icon="shield-checkmark-outline" />
           </View>
 
           {/* Logout Button */}

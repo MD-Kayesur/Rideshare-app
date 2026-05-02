@@ -3,16 +3,35 @@ import { View, Text, Pressable, Image, ScrollView, StatusBar } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useGetMyDriverProfileQuery } from '../../redux/features/driver/driverApi';
 import tw from 'twrnc';
 import { transportData } from './available-cars';
 
 export default function CarDetailsScreen() {
-    const { carId, name, transportType } = useLocalSearchParams();
+    const { carId, name, transportType, isMyCar } = useLocalSearchParams();
+    const { data: myProfile } = useGetMyDriverProfileQuery({}, { skip: !isMyCar });
     const currentCategory = (transportType as string) || 'Car';
     const vehicles = transportData[currentCategory] || [];
     
-    // Find the specific vehicle selected
-    const vehicle = vehicles.find(v => v.id === carId) || { name: name, image: null };
+    // Find the specific vehicle selected or use my profile data
+    let vehicle = vehicles.find(v => v.id === carId);
+    
+    if (isMyCar && myProfile?.data) {
+        const driver = myProfile.data;
+        vehicle = {
+            id: driver._id,
+            name: driver.vehicleModel,
+            image: driver.vehicleImage ? { uri: driver.vehicleImage } : require('../../assets/images/car_transparent.png'),
+            rating: driver.rating || 5,
+            reviews: 0,
+            vehicleType: driver.vehicleType,
+            vehicleNumber: driver.vehicleNumber,
+            licenseNumber: driver.licenseNumber,
+            details: driver.details
+        };
+    } else if (!vehicle) {
+        vehicle = { name: name as string, image: null, rating: 5, reviews: 0 };
+    }
 
     const specs = [
         { icon: 'lightning-bolt', label: 'Max. power', value: '2500hp' },
@@ -44,7 +63,7 @@ export default function CarDetailsScreen() {
                         <Text style={tw`text-3xl font-bold text-gray-800`}>{vehicle.name}</Text>
                         <View style={tw`flex-row items-center mt-2`}>
                             <Ionicons name="star" size={18} color="#FBBF24" />
-                            <Text style={tw`ml-1 text-gray-800 font-medium`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
+                            <Text style={tw`ml-1 text-gray-800 font-medium`}>{vehicle.rating || '4.9'} <Text style={tw`text-gray-400 font-normal`}>({vehicle.reviews || '531'} reviews)</Text></Text>
                         </View>
                     </View>
 
@@ -70,8 +89,24 @@ export default function CarDetailsScreen() {
                     </View>
 
                     {/* Car Features */}
-                    <Text style={tw`text-xl font-bold text-gray-800 mt-4 mb-4`}>Car features</Text>
-                    {features.map((feature, index) => (
+                    <Text style={tw`text-xl font-bold text-gray-800 mt-4 mb-4`}>Vehicle features</Text>
+                    <View key="model" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
+                        <Text style={tw`text-gray-500 font-medium`}>Model</Text>
+                        <Text style={tw`text-gray-800 font-bold`}>{vehicle.name}</Text>
+                    </View>
+                    {vehicle.vehicleNumber && (
+                        <View key="plate" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
+                            <Text style={tw`text-gray-500 font-medium`}>Plate Number</Text>
+                            <Text style={tw`text-gray-800 font-bold`}>{vehicle.vehicleNumber}</Text>
+                        </View>
+                    )}
+                    {vehicle.details?.isAC !== undefined && (
+                        <View key="ac" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
+                            <Text style={tw`text-gray-500 font-medium`}>Air Conditioning</Text>
+                            <Text style={tw`text-gray-800 font-bold`}>{vehicle.details.isAC ? 'Yes' : 'No'}</Text>
+                        </View>
+                    )}
+                    {!isMyCar && features.map((feature, index) => (
                         <View key={index} style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
                             <Text style={tw`text-gray-500 font-medium`}>{feature.label}</Text>
                             <Text style={tw`text-gray-800 font-bold`}>{feature.value}</Text>

@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import tw from 'twrnc';
+import { useCreateRideMutation } from '../../redux/features/ride/rideApi';
 
 const paymentMethods = [
     { id: '1', type: 'visa', label: '**** **** **** 8970', expires: 'Expires: 12/26', icon: 'cc-visa' },
@@ -26,6 +27,8 @@ export default function RequestRentScreen() {
     const [time, setTime] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+
+    const [createRide, { isLoading: isCreatingRide }] = useCreateRideMutation();
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         if (Platform.OS === 'android') {
@@ -72,11 +75,34 @@ export default function RequestRentScreen() {
 
     const currentImage = vehicleImages[carDisplayName] || vehicleImages['Mustang Shelby GT'];
 
-    const handleNextStep = () => {
+    const handleNextStep = async () => {
         if (step === 0) {
             setStep(1);
         } else if (step === 1) {
-            setModalStep('success');
+            try {
+                const rideData = {
+                    pickupLocation: {
+                        coordinates: [90.4125, 23.8103], // Mock coordinates for "Current location"
+                        address: "2972 Westheimer Rd. Santa Ana, Illinois 85486"
+                    },
+                    destinationLocation: {
+                        coordinates: [90.4043, 23.7940], // Mock coordinates for "Office"
+                        address: "1901 Thornridge Cir. Shiloh, Hawaii 81063"
+                    },
+                    fare: 220,
+                    distance: 1.1,
+                    duration: 10,
+                    rideType: carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
+                };
+
+                const res = await createRide(rideData).unwrap();
+                if (res.success) {
+                    setModalStep('success');
+                }
+            } catch (error: any) {
+                console.error('Ride creation error:', error);
+                Alert.alert("Error", error?.data?.message || "Failed to request ride. Please try again.");
+            }
         }
     };
 
@@ -231,10 +257,11 @@ export default function RequestRentScreen() {
                 <View style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-6 border-t border-gray-100`}>
                     <Pressable
                         onPress={handleNextStep}
-                        style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg`}
+                        disabled={isCreatingRide}
+                        style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg ${isCreatingRide ? 'opacity-50' : ''}`}
                     >
                         <Text style={tw`text-white font-bold text-xl`}>
-                            {step === 0 ? 'Confirm Booking' : 'Confirm Ride'}
+                            {isCreatingRide ? 'Requesting...' : step === 0 ? 'Confirm Booking' : 'Confirm Ride'}
                         </Text>
                     </Pressable>
                 </View>

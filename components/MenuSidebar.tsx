@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, Image, Animated, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import tw from 'twrnc';
+
+import { useAppSelector } from "../redux/hooks";
 
 interface MenuSidebarProps {
     isOpen: boolean;
@@ -14,8 +16,18 @@ interface MenuSidebarProps {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
+    const user = useAppSelector((state) => state.auth.user);
+    const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
+
+    const vehicleTypes = [
+        { id: 'v1', title: 'Car', icon: 'car-outline' },
+        { id: 'v2', title: 'Bike', icon: 'bicycle-outline' },
+        { id: 'v3', title: 'Cycle', icon: 'bicycle-outline' },
+        { id: 'v4', title: 'CNG', icon: 'car-sport-outline' },
+    ];
     const menuItems = [
         { id: '1', title: 'History', icon: 'file', provider: 'Octicons', route: '/(pages)/history' },
+        { id: '1a', title: 'Messages', icon: 'chatbubbles-outline', provider: 'Ionicons', route: '/chat_history' },
         { id: '2', title: 'Complain', icon: 'chatbubble-ellipses-outline', provider: 'Ionicons', route: '/(pages)/complain' },
         { id: '3', title: 'Referral', icon: 'account-group-outline', provider: 'MaterialCommunityIcons', route: '/(pages)/referral' },
         { id: '4', title: 'About Us', icon: 'info', provider: 'Octicons', route: '/(pages)/about' },
@@ -53,26 +65,98 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                 ]}
             >
                 <SafeAreaView style={tw`flex-1`}>
-                    <View style={tw`px-10 pt-10 pb-8`}>
+                    <View style={tw`px-10 pt-6 `}>
                         <Pressable onPress={onClose} style={tw`flex-row items-center mb-10`}>
                             <Ionicons name="chevron-back" size={28} color="#333" />
                             <Text style={tw`text-xl text-gray-800 ml-1 font-medium`}>Back</Text>
                         </Pressable>
 
-                        <View style={tw`mb-8`}>
+                        <View style={tw`mb-6`}>
                             <View style={tw`w-28 h-28 rounded-full items-center justify-center overflow-hidden mb-4 border-2 border-[#10B981]/20 p-1`}>
                                 <Image
-                                    source={require("../assets/images/image.png")}
+                                    source={user?.avatar ? { uri: user.avatar } : require("../assets/images/image.png")}
                                     style={tw`w-full h-full rounded-full bg-[#E0F2FE]`}
                                     resizeMode="cover"
                                 />
                             </View>
-                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>MD Kayesur Rahman</Text>
-                            <Text style={tw`text-base text-gray-500`}>kayesur@gmail.com</Text>
+                            <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>{user?.name || 'User Name'}</Text>
+                            <Text style={tw`text-base text-gray-500`}>{user?.email || 'user@email.com'}</Text>
                         </View>
                     </View>
 
                     <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+                        {user?.role === 'admin' && (
+                            <View style={tw`border-b border-gray-100 bg-[#10B981]/5`}>
+                                <Pressable
+                                    onPress={() => {
+                                        onClose();
+                                        router.push('/(pages)/admin-dashboard');
+                                    }}
+                                    style={tw`flex-row items-center px-10 py-4`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="shield-checkmark-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4`}>Admin Dashboard</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => {
+                                        onClose();
+                                        router.push('/(pages)/admin-notifications');
+                                    }}
+                                    style={tw`flex-row items-center px-10 py-4 border-t border-[#10B981]/10`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="notifications-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4`}>Notifications</Text>
+                                    <View style={tw`ml-auto bg-red-500 w-5 h-5 rounded-full items-center justify-center`}>
+                                        <Text style={tw`text-white text-[10px] font-bold`}>!</Text>
+                                    </View>
+                                </Pressable>
+                            </View>
+                        )}
+
+                        {user?.role === 'driver' && (
+                            <View style={tw`border-b border-gray-50`}>
+                                <Pressable
+                                    onPress={() => setIsAddVehicleOpen(!isAddVehicleOpen)}
+                                    style={tw`flex-row items-center px-10 py-3`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="add-circle-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4 flex-1`}>Add Vehicle</Text>
+                                    <Ionicons 
+                                        name={isAddVehicleOpen ? "chevron-up" : "chevron-down"} 
+                                        size={20} 
+                                        color="#10B981" 
+                                    />
+                                </Pressable>
+
+                                {isAddVehicleOpen && (
+                                    <View style={tw`bg-gray-50/50 py-1`}>
+                                        {vehicleTypes.map(v => (
+                                            <Pressable
+                                                key={v.id}
+                                                onPress={() => {
+                                                    onClose();
+                                                    router.push({
+                                                        pathname: "/(pages)/add-vehicle" as any,
+                                                        params: { type: v.title.toLowerCase() }
+                                                    });
+                                                }}
+                                                style={tw`flex-row items-center px-16 py-2.5`}
+                                            >
+                                                <Ionicons name={v.icon as any} size={18} color="#6B7280" />
+                                                <Text style={tw`text-base text-gray-600 ml-3`}>{v.title}</Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                )}
+                            </View>
+                        )}
+
                         {menuItems.map(item => (
                             <Pressable
                                 key={item.id}
