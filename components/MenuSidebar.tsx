@@ -5,7 +5,9 @@ import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import tw from 'twrnc';
 
-import { useAppSelector } from "../redux/hooks";
+import { useAppSelector, useAppDispatch } from "../redux/hooks";
+import { useToggleOnlineMutation, useGetMeQuery } from "../redux/features/auth/authApi";
+import { setUser } from "../redux/features/auth/authSlice";
 
 interface MenuSidebarProps {
     isOpen: boolean;
@@ -16,7 +18,11 @@ interface MenuSidebarProps {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
-    const user = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
+    const token = useAppSelector((state) => state.auth.token);
+    const { data: meData } = useGetMeQuery(undefined, { skip: !isOpen });
+    const user = meData?.data || useAppSelector((state) => state.auth.user);
+    const [toggleOnline] = useToggleOnlineMutation();
     const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
 
     const vehicleTypes = [
@@ -119,6 +125,39 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
 
                         {user?.role === 'driver' && (
                             <View style={tw`border-b border-gray-50`}>
+                                <View style={tw`px-10 py-4 flex-row items-center justify-between bg-[#10B981]/5 mb-2`}>
+                                    <View style={tw`flex-row items-center`}>
+                                        <Octicons 
+                                            name="dot-fill" 
+                                            size={20} 
+                                            color={user?.isOnline ? "#10B981" : "#EF4444"} 
+                                        />
+                                        <Text style={tw`text-lg font-bold text-gray-800 ml-3`}>
+                                            {user?.isOnline ? 'Online' : 'Offline'}
+                                        </Text>
+                                    </View>
+                                    <Pressable 
+                                        onPress={async () => {
+                                            try {
+                                                const newStatus = !user?.isOnline;
+                                                const res = await toggleOnline({ isOnline: newStatus }).unwrap();
+                                                if (res.success) {
+                                                    // Sync with auth slice for other components
+                                                    dispatch(setUser({ user: res.data, token: token as string }));
+                                                }
+                                            } catch (err) {
+                                                console.error("Toggle online failed", err);
+                                            }
+                                        }}
+                                        style={tw`w-14 h-8 rounded-full ${user?.isOnline ? 'bg-[#10B981]' : 'bg-gray-300'} p-1 justify-center`}
+                                    >
+                                        <View style={[
+                                            tw`w-6 h-6 rounded-full bg-white shadow-sm`,
+                                            { transform: [{ translateX: user?.isOnline ? 24 : 0 }] }
+                                        ]} />
+                                    </Pressable>
+                                </View>
+
                                 <Pressable
                                     onPress={() => setIsAddVehicleOpen(!isAddVehicleOpen)}
                                     style={tw`flex-row items-center px-10 py-3`}
@@ -157,7 +196,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                             </View>
                         )}
 
-                        {menuItems.map(item => (
+                        {menuItems.map((item, index) => (
                             <Pressable
                                 key={item.id}
                                 onPress={() => {
@@ -168,7 +207,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                         router.push(item.route as any);
                                     }
                                 }}
-                                style={tw`flex-row items-center px-10 py-3 border-b border-gray-50`}
+                                style={tw`flex-row items-center px-10 py-3 ${index >= menuItems.length - 2 ? '' : '  '}`}
                             >
                                 <View style={tw`w-8 items-center`}>
                                     {renderIcon(item)}

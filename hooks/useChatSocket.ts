@@ -19,7 +19,12 @@ export const useChatSocket = (chatId?: string) => {
         chatApi.util.updateQueryData('getMessages' as any, chatId as any, (draft: any) => {
           const processData = (data: any[]) => {
             const messageId = (message._id || message.id || '').toString();
-            if (!messageId) return;
+            const messageChatId = (message.chat?._id || message.chat?.id || message.chat || '').toString();
+            
+            if (!messageId || !messageChatId) return;
+
+            // Only update if this message belongs to the current chat
+            if (chatId && messageChatId !== chatId.toString()) return;
 
             const exists = data.some((m: any) => 
               (m._id || m.id || '').toString() === messageId

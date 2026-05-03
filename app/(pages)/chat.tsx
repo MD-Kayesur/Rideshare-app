@@ -14,16 +14,30 @@ const initialMessages = [
 ];
 
 import { useLocalSearchParams } from 'expo-router';
-import { useGetMessagesQuery, useSendMessageMutation } from '../../redux/features/chat/chatApi';
+import { useGetMessagesQuery, useSendMessageMutation, useCreateChatMutation, useMarkAsReadMutation } from '../../redux/features/chat/chatApi';
 import { useChatSocket } from '../../hooks/useChatSocket';
 import { useAppSelector } from '../../redux/hooks';
 import { useCurrentUser } from '../../redux/features/auth/authSlice';
 
 export default function ChatScreen() {
-    const { chatId = 'default_chat_id', userName, userAvatar } = useLocalSearchParams(); // Get chat info from params
+    const { chatId: initialChatId, userId, userName, userAvatar } = useLocalSearchParams(); 
+    const [chatId, setChatId] = useState<string | null>(initialChatId as string || null);
+    const [markAsRead] = useMarkAsReadMutation();
     const user = useAppSelector(useCurrentUser);
-    const { data: messagesData, isLoading } = useGetMessagesQuery(chatId);
+    
+    // Check for valid chatId
+    const isValidChatId = chatId && chatId !== 'undefined' && chatId !== 'null';
+
+    const { data: messagesData, isLoading } = useGetMessagesQuery(chatId || 'none', { skip: !isValidChatId });
+    
+    useEffect(() => {
+        if (isValidChatId) {
+            markAsRead(chatId as string);
+        }
+    }, [chatId]);
+
     const [sendMessage] = useSendMessageMutation();
+    const [createChat] = useCreateChatMutation();
     const socket = useChatSocket(chatId as string);
     
     const [inputText, setInputText] = useState('');
@@ -31,12 +45,27 @@ export default function ChatScreen() {
 
     const messages = messagesData?.data || [];
 
+    // Initialize chat if we only have a userId
+    useEffect(() => {
+        const initChat = async () => {
+            if (!chatId && userId) {
+                try {
+                    const res = await createChat({ participants: [userId as string] }).unwrap();
+                    setChatId(res.data?._id || res.data?.id);
+                } catch (err) {
+                    console.error("Failed to init chat:", err);
+                }
+            }
+        };
+        initChat();
+    }, [chatId, userId]);
+
     // Auto-scroll to bottom when messages change
     useEffect(() => {
         if (messages.length > 0) {
             setTimeout(() => {
                 scrollRef.current?.scrollToEnd({ animated: true });
-            }, 100);
+            }, 200);
         }
     }, [messages]);
 
@@ -98,8 +127,8 @@ export default function ChatScreen() {
                                         ) : messages.map((msg: any, index: number) => {
                             if (!msg) return null;
                             const currentUserId = (user?._id || user?.id)?.toString();
-                            const senderId = (typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.id) : msg.sender)?.toString();
-                            const isSent = !!currentUserId && !!senderId && senderId === currentUserId;
+                            const senderId = (msg.sender?._id || msg.sender?.id || msg.sender)?.toString();
+                            const isSent = currentUserId && senderId && currentUserId === senderId;
                             
                             return (
                                 <View key={msg._id || msg.id || `msg-${index}`} style={tw`mb-6`}>

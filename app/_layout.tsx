@@ -6,15 +6,73 @@ import { Platform, ActivityIndicator, View } from 'react-native';
 import { useAppDispatch } from '../redux/hooks';
 import { getItem } from '../redux/hooks/storage';
 import { setUser } from '../redux/features/auth/authSlice';
+import { RideRequestOverlay } from '../components/RideRequestOverlay';
 
 // Only import CSS on web - NativeWind handles mobile automatically via Metro
 if (Platform.OS === 'web') {
   require('./global.css');
 }
 
+import { useRef } from 'react';
+import { socketService } from '../utils/socket';
+import { Alert, Animated, Pressable, Text } from 'react-native';
+import tw from 'twrnc';
+import { router } from 'expo-router';
+
 function RootLayoutNav() {
   const dispatch = useAppDispatch();
   const [isReady, setIsReady] = useState(false);
+  const [toast, setToast] = useState<any>(null);
+  const toastAnim = useRef(new Animated.Value(-100)).current;
+
+  const showToast = (data: any) => {
+    setToast(data);
+    Animated.spring(toastAnim, {
+      toValue: 20,
+      useNativeDriver: true,
+      tension: 20,
+      friction: 7
+    }).start();
+
+    setTimeout(() => {
+      hideToast();
+    }, 5000);
+  };
+
+  const hideToast = () => {
+    Animated.timing(toastAnim, {
+      toValue: -100,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setToast(null));
+  };
+
+  const handleToastClick = async () => {
+    if (!toast) return;
+    hideToast();
+    
+    if (toast.type === 'complaint' && toast.metadata?.userId) {
+        // Admin clicking a complaint notification
+        router.push({
+            pathname: '/(pages)/chat',
+            params: {
+                userId: toast.metadata.userId,
+                userName: toast.metadata.userName || "User"
+            }
+        });
+    } else if (toast.type === 'chat' && toast.metadata?.chatId) {
+        // User clicking an admin reply notification
+        router.push({
+            pathname: '/(pages)/chat',
+            params: {
+                chatId: toast.metadata.chatId,
+                userName: toast.metadata.userName || "Admin"
+            }
+        });
+    } else {
+        router.push('/(pages)/notifications');
+    }
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -25,6 +83,21 @@ function RootLayoutNav() {
         if (token) {
           const user = userData ? JSON.parse(userData) : null;
           dispatch(setUser({ user, token }));
+          
+          // Initialize Socket and join user room
+          const socket = socketService.connect();
+          if (user?._id || user?.id) {
+            socket.emit('join', user._id || user.id);
+          }
+
+          // Global notification listeners
+          socket.on('notification', (data: any) => {
+            showToast(data);
+          });
+
+          socket.on('admin-notification', (data: any) => {
+            showToast(data);
+          });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -54,19 +127,40 @@ function RootLayoutNav() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="workout/[id]" />
-      <Stack.Screen name="+not-found" options={{ headerShown: true }} />
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="workout/[id]" />
+        <Stack.Screen name="+not-found" options={{ headerShown: true }} />
+      </Stack>
+      <RideRequestOverlay />
+
+      {toast && (
+        <Animated.View 
+          style={[
+            tw`absolute left-4 right-4 bg-white rounded-3xl p-4 shadow-xl border-l-4 border-[#10B981] z-50`,
+            { transform: [{ translateY: toastAnim }] }
+          ]}
+        >
+          <Pressable onPress={handleToastClick}>
+            <Text style={tw`font-bold text-gray-800 text-lg`}>{toast.title}</Text>
+            <Text style={tw`text-gray-500 text-sm mt-1`} numberOfLines={2}>{toast.message}</Text>
+          </Pressable>
+        </Animated.View>
+      )}
+    </>
   );
 }
+
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <RootLayoutNav />
+      <SafeAreaProvider>
+        <RootLayoutNav />
+      </SafeAreaProvider>
     </Provider>
   );
 }

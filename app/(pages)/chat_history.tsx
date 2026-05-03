@@ -15,7 +15,7 @@ export default function ChatHistoryScreen() {
 
     const chats = chatsData?.data || (Array.isArray(chatsData) ? chatsData : []);
 
-    const renderChatItem = ({ item }: { item: any }) => {
+    const renderChatItem = ({ item, index }: { item: any, index: number }) => {
         // Find the other participant (the person who is NOT the current user)
         const currentUserId = (user?._id || user?.id)?.toString();
         
@@ -49,16 +49,25 @@ export default function ChatHistoryScreen() {
                 </View>
                 <View style={tw`flex-1 ml-4`}>
                     <View style={tw`flex-row justify-between items-center mb-1`}>
-                        <Text style={tw`text-lg font-bold text-gray-800`}>
-                            {otherParticipant?.name || 'Unknown User'}
-                        </Text>
-                        <Text style={tw`text-gray-400 text-xs`}>
-                            {lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </Text>
+                        <View>
+                            <Text style={tw`text-lg font-bold text-gray-800`}>
+                                {index + 1}. {otherParticipant?.name || 'Unknown User'}
+                            </Text>
+                            <Text style={tw`text-gray-500 text-sm`} numberOfLines={1}>
+                                {lastMessage?.content || 'No messages yet'}
+                            </Text>
+                        </View>
+                        <View style={tw`items-end`}>
+                            <Text style={tw`text-gray-400 text-xs mb-1`}>
+                                {lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                            </Text>
+                            {item.unreadCount > 0 && (
+                                <View style={tw`bg-red-500 px-2 py-0.5 rounded-full min-w-[20px] items-center justify-center`}>
+                                    <Text style={tw`text-white text-[10px] font-bold`}>{item.unreadCount}</Text>
+                                </View>
+                            )}
+                        </View>
                     </View>
-                    <Text style={tw`text-gray-500 text-sm`} numberOfLines={1}>
-                        {lastMessage?.content || 'No messages yet'}
-                    </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </Pressable>

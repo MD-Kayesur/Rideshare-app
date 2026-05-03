@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Image, StatusBar } from 'react-native';
+import { View, Text, Pressable, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -30,12 +31,13 @@ export default function CallScreen() {
     const formatTime = (totalSeconds: number) => {
         const mins = Math.floor(totalSeconds / 60);
         const secs = totalSeconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        const pad = (n: number) => n < 10 ? `0${n}` : `${n}`;
+        return `${pad(mins)}:${pad(secs)}`;
     };
 
     return (
         <View style={tw`flex-1 bg-white`}>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar style="dark" />
             <SafeAreaView style={tw`flex-1`}>
                 {/* Header */}
                 <View style={tw`px-6 py-4`}>
@@ -74,9 +76,9 @@ export default function CallScreen() {
 
                     <Pressable
                         onPress={() => router.back()}
-                        style={tw`w-20 h-20 ${status === 'calling' ? 'bg-[#10B981]' : 'bg-[#EF4444]'} rounded-full items-center justify-center shadow-lg transform scale-110`}
+                        style={[tw`w-20 h-20 rounded-full items-center justify-center shadow-lg`, { backgroundColor: status === 'calling' ? '#10B981' : '#EF4444', transform: [{ scale: 1.1 }] }]}
                     >
-                        <MaterialCommunityIcons name="phone" size={40} color="white" style={tw`transform rotate-[135deg]`} />
+                        <MaterialCommunityIcons name="phone" size={40} color="white" style={{ transform: [{ rotate: '135deg' }] }} />
                     </Pressable>
 
                     <Pressable style={tw`w-14 h-14 bg-[#E6F7F1] rounded-full items-center justify-center shadow-sm`}>
