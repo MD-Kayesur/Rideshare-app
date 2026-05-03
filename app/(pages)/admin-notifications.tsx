@@ -90,18 +90,27 @@ export default function AdminNotificationsScreen() {
                             <Text style={tw`text-gray-400 font-medium mt-4 text-lg`}>No notifications yet</Text>
                         </View>
                     ) : (
-                        notifications.data.map((notif: any) => (
+                        notifications?.data?.map((notif: any) => (
                             <Pressable 
                                 key={notif._id} 
                                 onPress={() => handleNotificationClick(notif)}
                                 style={tw`rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${notif.isRead ? 'bg-white' : 'bg-green-50'}`}
                             >
                                 <View style={tw`flex-row items-start`}>
-                                    <View style={tw`w-10 h-10 rounded-full ${notif.type === 'complaint' ? 'bg-red-100' : 'bg-blue-100'} items-center justify-center`}>
+                                    <View style={tw`w-10 h-10 rounded-full ${
+                                        notif.type === 'complaint' ? 'bg-red-100' : 
+                                        notif.type === 'chat' ? 'bg-green-100' : 'bg-blue-100'
+                                    } items-center justify-center`}>
                                         <Ionicons 
-                                            name={notif.type === 'complaint' ? "alert-circle" : "notifications"} 
+                                            name={
+                                                notif.type === 'complaint' ? "alert-circle" : 
+                                                notif.type === 'chat' ? "chatbubbles" : "notifications"
+                                            } 
                                             size={24} 
-                                            color={notif.type === 'complaint' ? "#EF4444" : "#3B82F6"} 
+                                            color={
+                                                notif.type === 'complaint' ? "#EF4444" : 
+                                                notif.type === 'chat' ? "#10B981" : "#3B82F6"
+                                            } 
                                         />
                                     </View>
                                     <View style={tw`ml-4 flex-1`}>

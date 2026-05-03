@@ -52,20 +52,23 @@ function RootLayoutNav() {
     hideToast();
     
     if (toast.type === 'complaint' && toast.metadata?.userId) {
-        // Find or create chat with the user who complained
-        try {
-            // Note: In _layout we don't have access to chat mutations directly easily 
-            // without being inside a provider, but we are inside Provider.
-            // However, it's better to just navigate to notifications or a specific route.
-            // For now, I'll redirect to a special route or just the chat list.
-            router.push({
-                pathname: '/(pages)/chat',
-                params: {
-                    userId: toast.metadata.userId,
-                    userName: "User"
-                }
-            });
-        } catch (e) {}
+        // Admin clicking a complaint notification
+        router.push({
+            pathname: '/(pages)/chat',
+            params: {
+                userId: toast.metadata.userId,
+                userName: toast.metadata.userName || "User"
+            }
+        });
+    } else if (toast.type === 'chat' && toast.metadata?.chatId) {
+        // User clicking an admin reply notification
+        router.push({
+            pathname: '/(pages)/chat',
+            params: {
+                chatId: toast.metadata.chatId,
+                userName: toast.metadata.userName || "Admin"
+            }
+        });
     } else {
         router.push('/(pages)/notifications');
     }
