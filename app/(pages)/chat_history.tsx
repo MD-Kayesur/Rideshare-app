@@ -15,7 +15,7 @@ export default function ChatHistoryScreen() {
 
     const chats = chatsData?.data || (Array.isArray(chatsData) ? chatsData : []);
 
-    const renderChatItem = ({ item }: { item: any }) => {
+    const renderChatItem = ({ item, index }: { item: any, index: number }) => {
         // Find the other participant (the person who is NOT the current user)
         const currentUserId = (user?._id || user?.id)?.toString();
         
@@ -49,9 +49,14 @@ export default function ChatHistoryScreen() {
                 </View>
                 <View style={tw`flex-1 ml-4`}>
                     <View style={tw`flex-row justify-between items-center mb-1`}>
-                        <Text style={tw`text-lg font-bold text-gray-800`}>
-                            {otherParticipant?.name || 'Unknown User'}
-                        </Text>
+                        <View>
+                            <Text style={tw`text-lg font-bold text-gray-800`}>
+                                {index + 1}. {otherParticipant?.name || 'Unknown User'}
+                            </Text>
+                            <Text style={tw`text-xs text-gray-400`}>
+                                {item.messageCount || 0} {item.messageCount === 1 ? 'message' : 'messages'}
+                            </Text>
+                        </View>
                         <Text style={tw`text-gray-400 text-xs`}>
                             {lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </Text>

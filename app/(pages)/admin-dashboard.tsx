@@ -109,9 +109,12 @@ export default function AdminDashboard() {
                                 <Text style={tw`text-gray-400 font-medium mt-4`}>No pending requests</Text>
                             </View>
                         ) : (
-                            pendingData?.data?.map((driver: any) => (
+                            pendingData?.data?.map((driver: any, index: number) => (
                                 <View key={driver._id} style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50`}>
                                     <View style={tw`flex-row items-center`}>
+                                        <View style={tw`mr-3 bg-gray-50 w-6 h-6 rounded-full items-center justify-center`}>
+                                            <Text style={tw`text-[10px] font-bold text-gray-400`}>{index + 1}</Text>
+                                        </View>
                                         <Image 
                                             source={{ uri: driver.user?.avatar || 'https://via.placeholder.com/150' }} 
                                             style={tw`w-14 h-14 rounded-full bg-gray-100`}
@@ -155,8 +158,11 @@ export default function AdminDashboard() {
                         {isLoadingUsers ? (
                             <ActivityIndicator size="large" color="#10B981" />
                         ) : (
-                            usersData?.data?.map((u: any) => (
+                            usersData?.data?.map((u: any, index: number) => (
                                 <View key={u._id} style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 flex-row items-center`}>
+                                    <View style={tw`mr-3 bg-gray-50 w-6 h-6 rounded-full items-center justify-center`}>
+                                        <Text style={tw`text-[10px] font-bold text-gray-400`}>{index + 1}</Text>
+                                    </View>
                                     <Image 
                                         source={u.avatar ? { uri: u.avatar } : require('../../assets/images/image.png')} 
                                         style={tw`w-12 h-12 rounded-full bg-gray-100`}
