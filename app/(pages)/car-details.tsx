@@ -88,8 +88,31 @@ export default function CarDetailsScreen() {
                         ))}
                     </View>
 
+                    {/* About Driver Section */}
+                    <Text style={tw`text-xl font-bold text-gray-800 mt-8 mb-4`}>About Driver</Text>
+                    <View style={tw`bg-white border border-gray-100 rounded-3xl p-5 shadow-sm`}>
+                        <View style={tw`flex-row items-center mb-4`}>
+                            <Image 
+                                source={vehicle.driverPhoto ? { uri: vehicle.driverPhoto } : (isMyCar && myProfile?.data?.driverPhoto ? { uri: myProfile.data.driverPhoto } : require('../../assets/images/image.png'))}
+                                style={tw`w-16 h-16 rounded-full bg-blue-50`}
+                            />
+                            <View style={tw`ml-4 flex-1`}>
+                                <Text style={tw`text-lg font-bold text-gray-800`}>{isMyCar ? myProfile?.data?.user?.name : "Professional Driver"}</Text>
+                                <View style={tw`flex-row items-center mt-1`}>
+                                    <View style={tw`bg-[#10B981]/10 px-2 py-0.5 rounded mr-2`}>
+                                        <Text style={tw`text-[10px] text-[#10B981] font-bold`}>VERIFIED</Text>
+                                    </View>
+                                    <Text style={tw`text-xs text-gray-400`}>{isMyCar ? myProfile?.data?.totalRides : '500+'} Trips</Text>
+                                </View>
+                            </View>
+                        </View>
+                        <Text style={tw`text-sm text-gray-500 leading-5`}>
+                            {isMyCar ? (myProfile?.data?.driverBio || "No bio added yet.") : "Experienced driver with 5+ years in the city. Committed to providing safe and comfortable rides for all passengers."}
+                        </Text>
+                    </View>
+
                     {/* Car Features */}
-                    <Text style={tw`text-xl font-bold text-gray-800 mt-4 mb-4`}>Vehicle features</Text>
+                    <Text style={tw`text-xl font-bold text-gray-800 mt-8 mb-4`}>Vehicle features</Text>
                     <View key="model" style={tw`flex-row justify-between items-center bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-xl px-4 py-4 mb-3`}>
                         <Text style={tw`text-gray-500 font-medium`}>Model</Text>
                         <Text style={tw`text-gray-800 font-bold`}>{vehicle.name}</Text>

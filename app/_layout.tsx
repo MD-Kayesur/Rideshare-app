@@ -6,6 +6,7 @@ import { Platform, ActivityIndicator, View } from 'react-native';
 import { useAppDispatch } from '../redux/hooks';
 import { getItem } from '../redux/hooks/storage';
 import { setUser } from '../redux/features/auth/authSlice';
+import { RideRequestOverlay } from '../components/RideRequestOverlay';
 
 // Only import CSS on web - NativeWind handles mobile automatically via Metro
 if (Platform.OS === 'web') {
@@ -54,12 +55,15 @@ function RootLayoutNav() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="workout/[id]" />
-      <Stack.Screen name="+not-found" options={{ headerShown: true }} />
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="workout/[id]" />
+        <Stack.Screen name="+not-found" options={{ headerShown: true }} />
+      </Stack>
+      <RideRequestOverlay />
+    </>
   );
 }
 
