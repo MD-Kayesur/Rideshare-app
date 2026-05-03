@@ -56,24 +56,41 @@ export default function AdminNotificationsScreen() {
     const [createChat] = useCreateChatMutation();
     const [sendMessage] = useSendMessageMutation();
 
+    const handleOpenChat = async (user: any) => {
+        if (!user?._id) return;
+        try {
+            const chatRes = await createChat({ participants: [user._id] }).unwrap();
+            const chatId = chatRes.data?._id || chatRes.data?.id;
+
+            router.push({
+                pathname: '/(pages)/chat',
+                params: {
+                    chatId,
+                    userName: user.name,
+                    userAvatar: user.avatar
+                }
+            });
+        } catch (err) {
+            Alert.alert("Error", "Failed to open chat");
+        }
+    };
+
     const handleResolve = async (comp: any) => {
         try {
             // 1. Resolve the complaint
             await resolveComplaint(comp._id).unwrap();
             
-            // 2. Create or get chat with the user who complained
+            // 2. Open chat and send message
             const chatRes = await createChat({ participants: [comp.user?._id] }).unwrap();
             const chatId = chatRes.data?._id || chatRes.data?.id;
 
-            // 3. Send initial message from admin
             await sendMessage({ 
                 chatId, 
                 content: `Hi ${comp.user?.name}, I have reviewed and resolved your complaint regarding "${comp.subject}". How can I help you further?` 
             }).unwrap();
             
-            Alert.alert("Success", "Complaint resolved and follow-up message sent!");
+            Alert.alert("Success", "Complaint resolved!");
             
-            // 4. Redirect to chat box
             router.push({
                 pathname: '/(pages)/chat',
                 params: {
@@ -166,7 +183,11 @@ export default function AdminNotificationsScreen() {
                 </View>
             ) : (
                 driverComplaints.map((comp: any) => (
-                    <View key={comp._id} style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${comp.isResolved ? 'opacity-50' : ''}`}>
+                    <Pressable 
+                        key={comp._id} 
+                        onPress={() => handleOpenChat(comp.user)}
+                        style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${comp.isResolved ? 'opacity-50' : ''}`}
+                    >
                         <View style={tw`flex-row justify-between mb-3`}>
                             <View style={tw`flex-row items-center`}>
                                 <View style={tw`w-8 h-8 rounded-full bg-red-50 items-center justify-center`}>
@@ -182,7 +203,7 @@ export default function AdminNotificationsScreen() {
                         </View>
                         <Text style={tw`text-gray-800 font-bold text-sm mb-1`}>From: {comp.user?.name}</Text>
                         <Text style={tw`text-gray-500 text-sm leading-5`}>{comp.message}</Text>
-                    </View>
+                    </Pressable>
                 ))
             )}
             <View style={tw`h-10`} />
@@ -199,7 +220,11 @@ export default function AdminNotificationsScreen() {
                 </View>
             ) : (
                 riderComplaints.map((comp: any) => (
-                    <View key={comp._id} style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${comp.isResolved ? 'opacity-50' : ''}`}>
+                    <Pressable 
+                        key={comp._id} 
+                        onPress={() => handleOpenChat(comp.user)}
+                        style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${comp.isResolved ? 'opacity-50' : ''}`}
+                    >
                         <View style={tw`flex-row justify-between mb-3`}>
                             <View style={tw`flex-row items-center`}>
                                 <View style={tw`w-8 h-8 rounded-full bg-red-50 items-center justify-center`}>
@@ -215,7 +240,7 @@ export default function AdminNotificationsScreen() {
                         </View>
                         <Text style={tw`text-gray-800 font-bold text-sm mb-1`}>From: {comp.user?.name}</Text>
                         <Text style={tw`text-gray-500 text-sm leading-5`}>{comp.message}</Text>
-                    </View>
+                    </Pressable>
                 ))
             )}
         </ScrollView>

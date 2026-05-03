@@ -13,6 +13,9 @@ if (Platform.OS === 'web') {
   require('./global.css');
 }
 
+import { socketService } from '../utils/socket';
+import { Alert } from 'react-native';
+
 function RootLayoutNav() {
   const dispatch = useAppDispatch();
   const [isReady, setIsReady] = useState(false);
@@ -26,6 +29,17 @@ function RootLayoutNav() {
         if (token) {
           const user = userData ? JSON.parse(userData) : null;
           dispatch(setUser({ user, token }));
+          
+          // Initialize Socket and join user room
+          const socket = socketService.connect();
+          if (user?._id || user?.id) {
+            socket.emit('join', user._id || user.id);
+          }
+
+          // Global notification listener
+          socket.on('notification', (data: any) => {
+            Alert.alert(data.title || "Notification", data.message);
+          });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
