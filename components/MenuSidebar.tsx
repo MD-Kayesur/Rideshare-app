@@ -187,7 +187,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                             </View>
                         )}
 
-                        {menuItems.map(item => (
+                        {menuItems.map((item, index) => (
                             <Pressable
                                 key={item.id}
                                 onPress={() => {
@@ -198,7 +198,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                         router.push(item.route as any);
                                     }
                                 }}
-                                style={tw`flex-row items-center px-10 py-3 border-b border-gray-50`}
+                                style={tw`flex-row items-center px-10 py-3 ${index >= menuItems.length - 2 ? '' : '  '}`}
                             >
                                 <View style={tw`w-8 items-center`}>
                                     {renderIcon(item)}
