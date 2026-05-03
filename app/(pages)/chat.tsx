@@ -14,7 +14,7 @@ const initialMessages = [
 ];
 
 import { useLocalSearchParams } from 'expo-router';
-import { useGetMessagesQuery, useSendMessageMutation, useCreateChatMutation } from '../../redux/features/chat/chatApi';
+import { useGetMessagesQuery, useSendMessageMutation, useCreateChatMutation, useMarkAsReadMutation } from '../../redux/features/chat/chatApi';
 import { useChatSocket } from '../../hooks/useChatSocket';
 import { useAppSelector } from '../../redux/hooks';
 import { useCurrentUser } from '../../redux/features/auth/authSlice';
@@ -22,8 +22,20 @@ import { useCurrentUser } from '../../redux/features/auth/authSlice';
 export default function ChatScreen() {
     const { chatId: initialChatId, userId, userName, userAvatar } = useLocalSearchParams(); 
     const [chatId, setChatId] = useState<string | null>(initialChatId as string || null);
+    const [markAsRead] = useMarkAsReadMutation();
     const user = useAppSelector(useCurrentUser);
-    const { data: messagesData, isLoading } = useGetMessagesQuery(chatId || 'none', { skip: !chatId });
+    
+    // Check for valid chatId
+    const isValidChatId = chatId && chatId !== 'undefined' && chatId !== 'null';
+
+    const { data: messagesData, isLoading } = useGetMessagesQuery(chatId || 'none', { skip: !isValidChatId });
+    
+    useEffect(() => {
+        if (isValidChatId) {
+            markAsRead(chatId as string);
+        }
+    }, [chatId]);
+
     const [sendMessage] = useSendMessageMutation();
     const [createChat] = useCreateChatMutation();
     const socket = useChatSocket(chatId as string);

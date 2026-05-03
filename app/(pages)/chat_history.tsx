@@ -53,17 +53,21 @@ export default function ChatHistoryScreen() {
                             <Text style={tw`text-lg font-bold text-gray-800`}>
                                 {index + 1}. {otherParticipant?.name || 'Unknown User'}
                             </Text>
-                            <Text style={tw`text-xs text-gray-400`}>
-                                {item.messageCount || 0} {item.messageCount === 1 ? 'message' : 'messages'}
+                            <Text style={tw`text-gray-500 text-sm`} numberOfLines={1}>
+                                {lastMessage?.content || 'No messages yet'}
                             </Text>
                         </View>
-                        <Text style={tw`text-gray-400 text-xs`}>
-                            {lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </Text>
+                        <View style={tw`items-end`}>
+                            <Text style={tw`text-gray-400 text-xs mb-1`}>
+                                {lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                            </Text>
+                            {item.unreadCount > 0 && (
+                                <View style={tw`bg-red-500 px-2 py-0.5 rounded-full min-w-[20px] items-center justify-center`}>
+                                    <Text style={tw`text-white text-[10px] font-bold`}>{item.unreadCount}</Text>
+                                </View>
+                            )}
+                        </View>
                     </View>
-                    <Text style={tw`text-gray-500 text-sm`} numberOfLines={1}>
-                        {lastMessage?.content || 'No messages yet'}
-                    </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </Pressable>
