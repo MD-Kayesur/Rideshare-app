@@ -62,12 +62,13 @@ export default function AvailableCarsScreen() {
     const { transportType } = useLocalSearchParams();
     const user = useAppSelector(state => state.auth.user);
     const currentTransportType = (transportType as string) || 'Car';
-    
+    const mappedType = currentTransportType.toLowerCase() === 'taxi' ? 'cng' : currentTransportType.toLowerCase();
+
     // Fetch real nearby drivers (using user location or default)
     const { data: nearbyData, isLoading } = useGetNearbyDriversQuery({
-        lat: user?.currentLocation?.coordinates[1] || 23.8103, // Default to Dhaka
-        lng: user?.currentLocation?.coordinates[0] || 90.4125,
-        vehicleType: currentTransportType.toLowerCase()
+        lat: user?.currentLocation?.coordinates?.[1] || 23.8103, // Default to Dhaka
+        lng: user?.currentLocation?.coordinates?.[0] || 90.4125,
+        vehicleType: mappedType
     });
 
     const staticVehicles = transportData[currentTransportType] || transportData['Car'];

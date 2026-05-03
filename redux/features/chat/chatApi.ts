@@ -79,6 +79,16 @@ export const chatApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Chat'],
     }),
+    markAsRead: builder.mutation({
+      query: (chatId) => ({
+        url: `/chats/${chatId}/read`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (result, error, chatId) => [
+        'Chat',
+        { type: 'Message', id: chatId },
+      ],
+    }),
   }),
   overrideExisting: true,
 });
@@ -88,4 +98,5 @@ export const {
   useGetMessagesQuery,
   useSendMessageMutation,
   useCreateChatMutation,
+  useMarkAsReadMutation,
 } = chatApi;

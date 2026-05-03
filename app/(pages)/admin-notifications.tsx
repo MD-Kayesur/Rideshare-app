@@ -1,141 +1,134 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Image, Alert, StatusBar } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, Alert, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import tw from 'twrnc';
-import { 
-    useGetPendingDriversQuery, 
-    useVerifyDriverMutation,
-    useGetAllComplaintsQuery, 
-    useResolveComplaintMutation 
-} from '../../redux/features/driver/driverApi';
+import { useGetAllNotificationsQuery, useMarkAsReadMutation } from '../../redux/features/notification/notificationApi';
+import { useCreateChatMutation } from '../../redux/features/chat/chatApi';
+import { socketService } from '../../utils/socket';
 
 export default function AdminNotificationsScreen() {
-    const [activeTab, setActiveTab] = useState<'drivers' | 'complaints'>('drivers');
+    const { data: notifications, refetch: refetchNotifications } = useGetAllNotificationsQuery();
+    const [markAsRead] = useMarkAsReadMutation();
+    const [createChat] = useCreateChatMutation();
     
-    const { data: pendingDrivers, isLoading: isLoadingDrivers } = useGetPendingDriversQuery({});
-    const { data: complaints, isLoading: isLoadingComplaints } = useGetAllComplaintsQuery({});
-    
-    const [verifyDriver, { isLoading: isVerifying }] = useVerifyDriverMutation();
-    const [resolveComplaint, { isLoading: isResolving }] = useResolveComplaintMutation();
+    const unreadCount = notifications?.data?.filter((n: any) => !n.isRead).length || 0;
 
-    const handleVerify = async (id: string) => {
+    useEffect(() => {
+        const socket = socketService.connect();
+        socket.on('admin-notification', () => {
+            refetchNotifications();
+        });
+        return () => {
+            socket.off('admin-notification');
+        };
+    }, []);
+
+    const handleNotificationClick = async (notif: any) => {
         try {
-            await verifyDriver(id).unwrap();
-            Alert.alert("Success", "Driver approved!");
-        } catch (err: any) {
-            Alert.alert("Error", err?.data?.message || "Verification failed");
-        }
+            await markAsRead(notif._id).unwrap();
+            
+            if (notif.type === 'complaint' && notif.metadata?.userId) {
+                // Open chat with the user who complained
+                const chatRes = await createChat({ participants: [notif.metadata.userId] }).unwrap();
+                const chatId = chatRes.data?._id || chatRes.data?.id;
+                
+                router.push({
+                    pathname: '/(pages)/chat',
+                    params: {
+                        chatId,
+                        userName: "User", // We could fetch actual name if needed
+                    }
+                });
+            } else if (notif.type === 'driver_request') {
+                // Redirect to a details page (placeholder for now)
+                Alert.alert("Detail View", "This would redirect to driver verification details.");
+            }
+        } catch (err) {}
     };
 
-    const handleResolve = async (id: string) => {
+    const handleOpenChat = async (user: any) => {
+        if (!user?._id) return;
         try {
-            await resolveComplaint(id).unwrap();
-            Alert.alert("Success", "Complaint marked as resolved");
-        } catch (err: any) {
-            Alert.alert("Error", err?.data?.message || "Resolution failed");
+            const chatRes = await createChat({ participants: [user._id] }).unwrap();
+            const chatId = chatRes.data?._id || chatRes.data?.id;
+
+            router.push({
+                pathname: '/(pages)/chat',
+                params: {
+                    chatId,
+                    userName: user.name,
+                    userAvatar: user.avatar
+                }
+            });
+        } catch (err) {
+            Alert.alert("Error", "Failed to open chat");
         }
     };
-
-    const renderDrivers = () => (
-        <ScrollView style={tw`flex-1 px-6 pt-4`}>
-            {!pendingDrivers?.data?.length ? (
-                <View style={tw`mt-10 items-center`}>
-                    <Ionicons name="checkmark-done" size={60} color="#D1D5DB" />
-                    <Text style={tw`text-gray-400 font-medium mt-4`}>No pending driver requests</Text>
-                </View>
-            ) : (
-                pendingDrivers.data.map((driver: any) => (
-                    <View key={driver._id} style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50`}>
-                        <View style={tw`flex-row items-center`}>
-                            <Image source={{ uri: driver.user?.avatar || 'https://via.placeholder.com/150' }} style={tw`w-12 h-12 rounded-full bg-gray-100`} />
-                            <View style={tw`ml-4 flex-1`}>
-                                <Text style={tw`font-bold text-gray-800 text-lg`}>{driver.user?.name}</Text>
-                                <Text style={tw`text-gray-400 text-sm`}>{driver.vehicleType} • {driver.vehicleModel}</Text>
-                            </View>
-                            <Pressable 
-                                onPress={() => handleVerify(driver._id)}
-                                disabled={isVerifying}
-                                style={tw`bg-[#10B981] px-4 py-2 rounded-xl`}
-                            >
-                                <Text style={tw`text-white font-bold text-xs`}>Verify</Text>
-                            </Pressable>
-                        </View>
-                    </View>
-                ))
-            )}
-        </ScrollView>
-    );
-
-    const renderComplaints = () => (
-        <ScrollView style={tw`flex-1 px-6 pt-4`}>
-            {!complaints?.data?.length ? (
-                <View style={tw`mt-10 items-center`}>
-                    <Ionicons name="happy-outline" size={60} color="#D1D5DB" />
-                    <Text style={tw`text-gray-400 font-medium mt-4`}>No active complaints</Text>
-                </View>
-            ) : (
-                complaints.data.map((comp: any) => (
-                    <View key={comp._id} style={tw`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${comp.isResolved ? 'opacity-50' : ''}`}>
-                        <View style={tw`flex-row justify-between mb-3`}>
-                            <View style={tw`flex-row items-center`}>
-                                <View style={tw`w-8 h-8 rounded-full bg-red-50 items-center justify-center`}>
-                                    <Ionicons name="alert-circle" size={20} color="#EF4444" />
-                                </View>
-                                <Text style={tw`ml-3 font-bold text-gray-800`}>{comp.subject}</Text>
-                            </View>
-                            {comp.isResolved ? (
-                                <View style={tw`bg-gray-100 px-2 py-1 rounded-lg`}>
-                                    <Text style={tw`text-gray-400 text-[10px] font-bold`}>RESOLVED</Text>
-                                </View>
-                            ) : (
-                                <Pressable onPress={() => handleResolve(comp._id)} disabled={isResolving}>
-                                    <Text style={tw`text-[#10B981] font-bold text-xs`}>Resolve</Text>
-                                </Pressable>
-                            )}
-                        </View>
-                        <Text style={tw`text-gray-500 text-sm leading-5`}>{comp.message}</Text>
-                        <View style={tw`mt-4 flex-row items-center`}>
-                            <Text style={tw`text-xs text-gray-400 font-medium`}>From: {comp.user?.name}</Text>
-                            <Text style={tw`text-xs text-gray-300 mx-2`}>•</Text>
-                            <Text style={tw`text-xs text-gray-400`}>{new Date(comp.createdAt).toLocaleDateString()}</Text>
-                        </View>
-                    </View>
-                ))
-            )}
-        </ScrollView>
-    );
 
     return (
         <View style={tw`flex-1 bg-[#F9FAFB]`}>
             <StatusBar barStyle="dark-content" />
             <SafeAreaView style={tw`flex-1`}>
-                {/* Header */}
                 <View style={tw`px-6 py-4 flex-row items-center bg-white border-b border-gray-50`}>
                     <Pressable onPress={() => router.back()} style={tw`p-2 -ml-2`}>
                         <Ionicons name="chevron-back" size={28} color="#333" />
                     </Pressable>
                     <Text style={tw`text-2xl font-bold text-gray-800 ml-2`}>Notifications</Text>
+                    {unreadCount > 0 && (
+                        <View style={tw`ml-3 bg-[#10B981] px-2.5 py-1 rounded-full`}>
+                            <Text style={tw`text-white text-xs font-bold`}>{unreadCount}</Text>
+                        </View>
+                    )}
                 </View>
 
-                {/* Tabs */}
-                <View style={tw`flex-row px-6 py-4 bg-white`}>
-                    <Pressable 
-                        onPress={() => setActiveTab('drivers')}
-                        style={tw`flex-1 py-2 items-center border-b-2 ${activeTab === 'drivers' ? 'border-[#10B981]' : 'border-transparent'}`}
-                    >
-                        <Text style={tw`font-bold ${activeTab === 'drivers' ? 'text-[#10B981]' : 'text-gray-400'}`}>Drivers</Text>
-                    </Pressable>
-                    <Pressable 
-                        onPress={() => setActiveTab('complaints')}
-                        style={tw`flex-1 py-2 items-center border-b-2 ${activeTab === 'complaints' ? 'border-[#10B981]' : 'border-transparent'}`}
-                    >
-                        <Text style={tw`font-bold ${activeTab === 'complaints' ? 'text-[#10B981]' : 'text-gray-400'}`}>Complaints</Text>
-                    </Pressable>
-                </View>
-
-                {activeTab === 'drivers' ? renderDrivers() : renderComplaints()}
+                <ScrollView style={tw`flex-1 px-6 pt-4`} showsVerticalScrollIndicator={false}>
+                    {!notifications?.data?.length ? (
+                        <View style={tw`mt-20 items-center`}>
+                            <Ionicons name="notifications-off-outline" size={80} color="#D1D5DB" />
+                            <Text style={tw`text-gray-400 font-medium mt-4 text-lg`}>No notifications yet</Text>
+                        </View>
+                    ) : (
+                        notifications?.data?.map((notif: any) => (
+                            <Pressable 
+                                key={notif._id} 
+                                onPress={() => handleNotificationClick(notif)}
+                                style={tw`rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${notif.isRead ? 'bg-white' : 'bg-green-50'}`}
+                            >
+                                <View style={tw`flex-row items-start`}>
+                                    <View style={tw`w-10 h-10 rounded-full ${
+                                        notif.type === 'complaint' ? 'bg-red-100' : 
+                                        notif.type === 'chat' ? 'bg-green-100' : 'bg-blue-100'
+                                    } items-center justify-center`}>
+                                        <Ionicons 
+                                            name={
+                                                notif.type === 'complaint' ? "alert-circle" : 
+                                                notif.type === 'chat' ? "chatbubbles" : "notifications"
+                                            } 
+                                            size={24} 
+                                            color={
+                                                notif.type === 'complaint' ? "#EF4444" : 
+                                                notif.type === 'chat' ? "#10B981" : "#3B82F6"
+                                            } 
+                                        />
+                                    </View>
+                                    <View style={tw`ml-4 flex-1`}>
+                                        <View style={tw`flex-row justify-between items-center mb-1`}>
+                                            <Text style={tw`font-bold text-gray-800 text-base`}>{notif.title}</Text>
+                                            {!notif.isRead && <View style={tw`w-2 h-2 rounded-full bg-[#10B981]`} />}
+                                        </View>
+                                        <Text style={tw`text-gray-500 text-sm leading-5`}>{notif.message}</Text>
+                                        <Text style={tw`text-[10px] text-gray-400 mt-2`}>
+                                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </Pressable>
+                        ))
+                    )}
+                    <View style={tw`h-10`} />
+                </ScrollView>
             </SafeAreaView>
         </View>
     );
