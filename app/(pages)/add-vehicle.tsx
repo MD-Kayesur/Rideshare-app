@@ -27,6 +27,8 @@ export default function AddVehicleScreen() {
     const [licenseNumber, setLicenseNumber] = useState("");
     const [isAC, setIsAC] = useState(false);
     const [vehicleImage, setVehicleImage] = useState("https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000&auto=format&fit=crop");
+    const [driverPhoto, setDriverPhoto] = useState("https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1000&auto=format&fit=crop");
+    const [driverBio, setDriverBio] = useState("");
 
     useEffect(() => {
         if (profileData?.data) {
@@ -36,6 +38,8 @@ export default function AddVehicleScreen() {
             setLicenseNumber(driver.licenseNumber || "");
             setIsAC(driver.details?.isAC || false);
             if (driver.vehicleImage) setVehicleImage(driver.vehicleImage);
+            if (driver.driverPhoto) setDriverPhoto(driver.driverPhoto);
+            setDriverBio(driver.driverBio || "");
         }
     }, [profileData]);
 
@@ -85,6 +89,8 @@ export default function AddVehicleScreen() {
             vehicleNumber: type !== 'cycle' ? vehicleNumber : undefined,
             licenseNumber: type !== 'cycle' ? licenseNumber : undefined,
             vehicleImage,
+            driverPhoto,
+            driverBio,
             details: type === 'car' ? { isAC } : {},
         };
 
@@ -136,8 +142,47 @@ export default function AddVehicleScreen() {
             </View>
 
             <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
+                {/* Driver Profile Section */}
+                <View style={tw`px-6 pt-4`}>
+                    <Text style={tw`text-lg font-bold text-gray-800 mb-4`}>Driver Profile</Text>
+                    <View style={tw`flex-row items-center bg-white border border-gray-100 rounded-3xl p-4 shadow-sm`}>
+                        <View style={tw`relative`}>
+                            <Image 
+                                source={{ uri: driverPhoto }} 
+                                style={tw`w-20 h-20 rounded-full bg-blue-100`} 
+                            />
+                            <Pressable 
+                                onPress={async () => {
+                                    const result = await ImagePicker.launchImageLibraryAsync({
+                                        mediaTypes: ['images'],
+                                        allowsEditing: true,
+                                        aspect: [1, 1],
+                                        quality: 0.8,
+                                    });
+                                    if (!result.canceled) setDriverPhoto(result.assets[0].uri);
+                                }}
+                                style={tw`absolute bottom-0 right-0 w-7 h-7 bg-[#10B981] rounded-full items-center justify-center border-2 border-white`}
+                            >
+                                <Ionicons name="camera" size={14} color="white" />
+                            </Pressable>
+                        </View>
+                        <View style={tw`ml-4 flex-1`}>
+                            <Text style={tw`text-sm font-bold text-gray-500 mb-2 ml-1`}>ABOUT ME</Text>
+                            <TextInput 
+                                placeholder="Tell riders about yourself..."
+                                value={driverBio}
+                                onChangeText={setDriverBio}
+                                multiline
+                                style={tw`bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-2 h-16 text-sm text-gray-800`}
+                                placeholderTextColor="#9CA3AF"
+                            />
+                        </View>
+                    </View>
+                </View>
+
                 {/* Vehicle Illustration/Image */}
-                <View style={tw`px-6 py-8 items-center`}>
+                <View style={tw`px-6 py-6 items-center`}>
+                    <Text style={tw`text-lg font-bold text-gray-800 mb-4 w-full`}>Vehicle Information</Text>
                     <View style={tw`w-full h-48 bg-[#F3F4F6] rounded-3xl overflow-hidden shadow-sm border border-gray-100`}>
                         <Image 
                             source={{ uri: vehicleImage }}

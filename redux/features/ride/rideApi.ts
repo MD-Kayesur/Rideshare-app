@@ -40,6 +40,36 @@ export const rideApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ['Ride', { type: 'Ride', id }],
     }),
+    startRide: builder.mutation({
+      query: ({ id, otp }) => ({
+        url: `/rides/${id}/start`,
+        method: 'PATCH',
+        body: { otp },
+      }),
+      invalidatesTags: (result, error, { id }) => ['Ride', { type: 'Ride', id }],
+    }),
+    completeRide: builder.mutation({
+      query: (id) => ({
+        url: `/rides/${id}/complete`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (result, error, id) => ['Ride', { type: 'Ride', id }],
+    }),
+    cancelRide: builder.mutation({
+      query: (id) => ({
+        url: `/rides/${id}/cancel`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (result, error, id) => ['Ride', { type: 'Ride', id }],
+    }),
+    rateRide: builder.mutation({
+      query: ({ id, rating, feedback }) => ({
+        url: `/rides/${id}/rate`,
+        method: 'PATCH',
+        body: { rating, feedback },
+      }),
+      invalidatesTags: (result, error, { id }) => ['Ride', { type: 'Ride', id }],
+    }),
   }),
 });
 
@@ -49,4 +79,8 @@ export const {
   useGetSingleRideQuery,
   useUpdateRideMutation,
   useAcceptRideMutation,
+  useStartRideMutation,
+  useCompleteRideMutation,
+  useCancelRideMutation,
+  useRateRideMutation,
 } = rideApi;

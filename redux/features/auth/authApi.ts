@@ -42,6 +42,30 @@ const authApi = baseApi.injectEndpoints({
       }),
       providesTags: ['User'],
     }),
+    toggleOnline: builder.mutation({
+      query: (data) => ({
+        url: '/users/toggle-online',
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    updateLocation: builder.mutation({
+      query: (data) => ({
+        url: '/users/update-location',
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    banUser: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/users/${id}/ban`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
   overrideExisting: true,
 });
@@ -53,4 +77,7 @@ export const {
   useVerifyOTPMutation,
   useResendOTPMutation,
   useGetAllUsersQuery,
+  useToggleOnlineMutation,
+  useUpdateLocationMutation,
+  useBanUserMutation,
 } = authApi;

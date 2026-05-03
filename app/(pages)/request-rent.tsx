@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, Image, ScrollView, TextInput, StatusBar, Alert, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, Image, ScrollView, TextInput, StatusBar, Alert, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import tw from 'twrnc';
-import { useCreateRideMutation } from '../../redux/features/ride/rideApi';
+import { useCreateRideMutation, useGetSingleRideQuery, useAcceptRideMutation, useStartRideMutation, useCompleteRideMutation, useCancelRideMutation, useRateRideMutation } from '../../redux/features/ride/rideApi';
+import { useGetNearbyDriversQuery } from '../../redux/features/driver/driverApi';
+import { useGetAllUsersQuery } from '../../redux/features/auth/authApi';
+import { socketService } from '../../utils/socket';
+import { useAppSelector } from '../../redux/hooks';
 
 const paymentMethods = [
     { id: '1', type: 'visa', label: '**** **** **** 8970', expires: 'Expires: 12/26', icon: 'cc-visa' },
@@ -15,65 +19,102 @@ const paymentMethods = [
 ];
 
 export default function RequestRentScreen() {
-    const { name } = useLocalSearchParams();
+    const { name, rideId: initialRideId, transportType } = useLocalSearchParams();
+    const user = useAppSelector(state => state.auth.user);
+    const [rideId, setRideId] = useState<string | null>((initialRideId as string) || null);
+    
+    const { data: rideResponse, refetch: refetchRide } = useGetSingleRideQuery(rideId, {
+        skip: !rideId,
+        pollingInterval: 5000, 
+    });
+    const ride = rideResponse?.data || rideResponse;
+
     const [selectedPayment, setSelectedPayment] = useState('1');
-    const [step, setStep] = useState(0); // 0: Details (Date/Time), 1: Charge
-    const [modalStep, setModalStep] = useState<null | 'success' | 'feedback' | 'final'>(null);
+    const [step, setStep] = useState(0); 
+    const [modalStep, setModalStep] = useState<null | 'success' | 'feedback' | 'final' | 'requesting'>(null);
     const [selectedTip, setSelectedTip] = useState('$2');
     const [rating, setRating] = useState(5);
+    const [feedback, setFeedback] = useState('');
+    const [otp, setOtp] = useState('');
 
-    // Date & Time states
     const [date, setDate] = useState(new Date());
     const [time, setTime] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
     const [createRide, { isLoading: isCreatingRide }] = useCreateRideMutation();
+    const [startRide] = useStartRideMutation();
+    const [completeRide] = useCompleteRideMutation();
+    const [cancelRide] = useCancelRideMutation();
+    const [rateRide] = useRateRideMutation();
+
+    const carDisplayName = ride?.rideType || (typeof name === 'string' ? name : 'Car');
+    const carFirstName = carDisplayName.split(' ')[0];
+
+    const { data: allUsersData } = useGetAllUsersQuery(undefined, { skip: modalStep !== 'requesting' });
+    const onlineDrivers = allUsersData?.data?.filter((u: any) => u.role === 'driver' && u.isOnline) || [];
+
+    useEffect(() => {
+        if (rideId) {
+            socketService.on('ride-accepted', () => refetchRide());
+            socketService.on('ride-started', () => refetchRide());
+            socketService.on('ride-completed', () => {
+                refetchRide();
+                setModalStep('success');
+            });
+            socketService.on('ride-cancelled', () => {
+                Alert.alert("Ride Cancelled", "This ride has been cancelled.");
+                router.replace('/(tabs)');
+            });
+        }
+        return () => {
+            socketService.off('ride-accepted');
+            socketService.off('ride-started');
+            socketService.off('ride-completed');
+            socketService.off('ride-cancelled');
+        };
+    }, [rideId]);
 
     const onDateChange = (event: any, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowDatePicker(false);
-        }
-        if (selectedDate) {
-            setDate(selectedDate);
-        }
+        if (Platform.OS === 'android') setShowDatePicker(false);
+        if (selectedDate) setDate(selectedDate);
     };
 
     const onTimeChange = (event: any, selectedTime?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowTimePicker(false);
-        }
-        if (selectedTime) {
-            setTime(selectedTime);
-        }
+        if (Platform.OS === 'android') setShowTimePicker(false);
+        if (selectedTime) setTime(selectedTime);
     };
 
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString();
-    };
+    const formatDate = (date: Date) => date.toLocaleDateString();
+    const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
 
-    const carDisplayName = typeof name === 'string' ? name : Array.isArray(name) ? name[0] : 'Mustang Shelby GT';
-    const carFirstName = carDisplayName.split(' ')[0];
-
-    // Map car name or type to images
     const vehicleImages: any = {
-        'BMW Cabrio': require('../../assets/images/bmw_cabrio.png'),
-        'Mustang Shelby GT': require('../../assets/images/mustang.png'),
-        'BMW i8': require('../../assets/images/bmw_i8.png'),
-        'Jaguar Silber': require('../../assets/images/jaguar.png'),
-        'NYC Yellow Cab': require('../../assets/images/taxi_render.png'),
-        'Executive Taxi': require('../../assets/images/taxi_render.png'),
-        'Yamaha R1M': require('../../assets/images/motorcycle_render.png'),
-        'Scooter Pro': require('../../assets/images/motorcycle_render.png'),
-        'City Hybrid': require('../../assets/images/bicycle_render.png'),
-        'Electric Cycle': require('../../assets/images/bicycle_render.png'),
+        'car': require('../../assets/images/mustang.png'),
+        'bike': require('../../assets/images/motorcycle_render.png'),
+        'cycle': require('../../assets/images/bicycle_render.png'),
+        'cng': require('../../assets/images/taxi_render.png'),
     };
 
-    const currentImage = vehicleImages[carDisplayName] || vehicleImages['Mustang Shelby GT'];
+    const currentImage = vehicleImages[ride?.rideType || carFirstName.toLowerCase()] || vehicleImages['car'];
+
+    const handleAction = async () => {
+        if (!rideId) return;
+        try {
+            if (ride?.status === 'accepted') {
+                if (!otp || otp.length !== 4) {
+                    Alert.alert("Error", "Please enter the 4-digit OTP from rider.");
+                    return;
+                }
+                await startRide({ id: rideId, otp }).unwrap();
+                Alert.alert("Success", "Trip started!");
+            } else if (ride?.status === 'ongoing') {
+                await completeRide(rideId).unwrap();
+            }
+        } catch (err: any) {
+            Alert.alert("Error", err?.data?.message || "Action failed");
+        }
+    };
 
     const handleNextStep = async () => {
         if (step === 0) {
@@ -92,12 +133,24 @@ export default function RequestRentScreen() {
                     fare: 220,
                     distance: 1.1,
                     duration: 10,
-                    rideType: carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
+                    rideType: (transportType as string)?.toLowerCase() === 'taxi' ? 'cng' : carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
                 };
 
                 const res = await createRide(rideData).unwrap();
                 if (res.success) {
-                    setModalStep('success');
+                    setRideId(res.data?._id);
+                    
+                    if (selectedPayment !== '4') { // If not Cash
+                        router.push({
+                            pathname: '/(pages)/checkout',
+                            params: { 
+                                amount: 220, 
+                                rideId: res.data?._id 
+                            }
+                        });
+                    } else {
+                        setModalStep('requesting');
+                    }
                 }
             } catch (error: any) {
                 console.error('Ride creation error:', error);
@@ -132,8 +185,20 @@ export default function RequestRentScreen() {
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-32 px-6`}>
+                    {/* Ride Status Header */}
+                    {rideId && ride && (
+                        <View style={tw`bg-[#10B981]/10 rounded-2xl p-4 mb-6`}>
+                            <Text style={tw`text-[#10B981] font-bold text-center text-lg`}>
+                                {ride?.status === 'pending' && 'Searching for Drivers...'}
+                                {ride?.status === 'accepted' && 'Driver is on the way'}
+                                {ride?.status === 'ongoing' && 'Trip in Progress'}
+                                {ride?.status === 'completed' && 'Trip Completed'}
+                            </Text>
+                        </View>
+                    )}
+
                     {/* Route Info */}
-                    {step === 0 && (
+                    {!rideId || ride?.status === 'pending' ? (
                         <View style={tw`mt-6 mb-8`}>
                             <View style={tw`flex-row items-start mb-6`}>
                                 <View style={tw`items-center mr-4 pt-1`}>
@@ -142,7 +207,7 @@ export default function RequestRentScreen() {
                                 </View>
                                 <View>
                                     <Text style={tw`text-lg font-bold text-gray-800`}>Current location</Text>
-                                    <Text style={tw`text-gray-400 text-sm`}>2972 Westheimer Rd. Santa Ana, Illinois 85486</Text>
+                                    <Text style={tw`text-gray-400 text-sm`}>{ride?.pickupLocation?.address || "2972 Westheimer Rd. Santa Ana, Illinois"}</Text>
                                 </View>
                             </View>
                             <View style={tw`flex-row items-start`}>
@@ -151,26 +216,75 @@ export default function RequestRentScreen() {
                                 </View>
                                 <View style={tw`flex-1 flex-row justify-between items-center`}>
                                     <View>
-                                        <Text style={tw`text-lg font-bold text-gray-800`}>Office</Text>
-                                        <Text style={tw`text-gray-400 text-sm`}>1901 Thornridge Cir. Shiloh, Hawaii 81063</Text>
+                                        <Text style={tw`text-lg font-bold text-gray-800`}>Destination</Text>
+                                        <Text style={tw`text-gray-400 text-sm`}>{ride?.destinationLocation?.address || "1901 Thornridge Cir. Shiloh, Hawaii"}</Text>
                                     </View>
-                                    <Text style={tw`text-gray-800 font-bold`}>1.1km</Text>
+                                    <Text style={tw`text-gray-800 font-bold`}>{ride?.distance || "1.1"}km</Text>
                                 </View>
                             </View>
                         </View>
+                    ) : (
+                        /* Driver Details & OTP */
+                        <View style={tw`mb-8`}>
+                            <View style={tw`flex-row items-center bg-gray-50 rounded-2xl p-4 mb-4`}>
+                                <Image 
+                                    source={ride?.driver?.avatar ? { uri: ride?.driver?.avatar } : require('../../assets/images/image.png')} 
+                                    style={tw`w-16 h-16 rounded-full bg-blue-100`} 
+                                />
+                                <View style={tw`ml-4 flex-1`}>
+                                    <Text style={tw`text-lg font-bold text-gray-800`}>{ride?.driver?.name || "Driver"}</Text>
+                                    <Text style={tw`text-gray-400`}>{ride?.rideType?.toUpperCase() || ''}</Text>
+                                </View>
+                                <View style={tw`flex-row gap-2`}>
+                                    <Pressable style={tw`w-10 h-10 rounded-full bg-[#E6F7F1] items-center justify-center`}>
+                                        <Ionicons name="call" size={20} color="#10B981" />
+                                    </Pressable>
+                                    <Pressable 
+                                        onPress={() => router.push('/(pages)/chat')}
+                                        style={tw`w-10 h-10 rounded-full bg-[#E6F7F1] items-center justify-center`}
+                                    >
+                                        <Ionicons name="chatbubble-ellipses" size={20} color="#10B981" />
+                                    </Pressable>
+                                </View>
+                            </View>
+
+                            {/* OTP Section */}
+                            {user?.role === 'rider' && ride?.status === 'accepted' && (
+                                <View style={tw`items-center bg-yellow-50 rounded-2xl p-6`}>
+                                    <Text style={tw`text-gray-500 mb-2`}>Share this OTP with Driver</Text>
+                                    <Text style={tw`text-4xl font-bold tracking-[8px] text-gray-800`}>{ride?.otp}</Text>
+                                </View>
+                            )}
+
+                            {user?.role === 'driver' && ride?.status === 'accepted' && (
+                                <View style={tw`bg-gray-50 rounded-2xl p-6`}>
+                                    <Text style={tw`text-gray-500 mb-2 text-center`}>Enter Rider's OTP to Start Trip</Text>
+                                    <TextInput 
+                                        style={tw`bg-white border border-gray-200 rounded-xl h-14 text-center text-2xl font-bold`}
+                                        placeholder="0 0 0 0"
+                                        maxLength={4}
+                                        keyboardType="number-pad"
+                                        value={otp}
+                                        onChangeText={setOtp}
+                                    />
+                                </View>
+                            )}
+                        </View>
                     )}
 
-                    {/* Car Summary */}
-                    <View style={tw`${step === 1 ? 'mt-6' : ''} bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-4 flex-row items-center mb-8 shadow-sm`}>
-                        <View style={tw`flex-1`}>
-                            <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{carDisplayName}</Text>
-                            <View style={tw`flex-row items-center`}>
-                                <Ionicons name="star" size={16} color="#FBBF24" />
-                                <Text style={tw`ml-1 text-gray-800 font-medium text-xs`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
+                    {/* Car Summary (Only during booking) */}
+                    {!rideId && (
+                        <View style={tw`${step === 1 ? 'mt-6' : ''} bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-2xl p-4 flex-row items-center mb-8 shadow-sm`}>
+                            <View style={tw`flex-1`}>
+                                <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{carDisplayName}</Text>
+                                <View style={tw`flex-row items-center`}>
+                                    <Ionicons name="star" size={16} color="#FBBF24" />
+                                    <Text style={tw`ml-1 text-gray-800 font-medium text-xs`}>4.9 <Text style={tw`text-gray-400 font-normal`}>(531 reviews)</Text></Text>
+                                </View>
                             </View>
+                            <Image source={currentImage} style={tw`w-24 h-14`} resizeMode="contain" />
                         </View>
-                        <Image source={currentImage} style={tw`w-24 h-14`} resizeMode="contain" />
-                    </View>
+                    )}
 
                     {step === 0 ? (
                         /* Step 0: Date & Time Inputs */
@@ -255,15 +369,58 @@ export default function RequestRentScreen() {
 
                 {/* Bottom Action */}
                 <View style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-6 border-t border-gray-100`}>
-                    <Pressable
-                        onPress={handleNextStep}
-                        disabled={isCreatingRide}
-                        style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg ${isCreatingRide ? 'opacity-50' : ''}`}
-                    >
-                        <Text style={tw`text-white font-bold text-xl`}>
-                            {isCreatingRide ? 'Requesting...' : step === 0 ? 'Confirm Booking' : 'Confirm Ride'}
-                        </Text>
-                    </Pressable>
+                    {!rideId ? (
+                        <Pressable
+                            onPress={handleNextStep}
+                            disabled={isCreatingRide}
+                            style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg ${isCreatingRide ? 'opacity-50' : ''}`}
+                        >
+                            <Text style={tw`text-white font-bold text-xl`}>
+                                {isCreatingRide ? 'Requesting...' : step === 0 ? 'Confirm Booking' : 'Confirm Ride'}
+                            </Text>
+                        </Pressable>
+                    ) : ride?.status === 'pending' ? (
+                        <View style={tw`flex-row gap-4`}>
+                            <Pressable 
+                                onPress={() => {
+                                    cancelRide(rideId);
+                                    router.replace('/(tabs)');
+                                }}
+                                style={tw`flex-1 py-4.5 rounded-2xl items-center border border-red-500`}
+                            >
+                                <Text style={tw`text-red-500 font-bold text-lg`}>Cancel</Text>
+                            </Pressable>
+                            <View style={tw`flex-2 bg-gray-100 py-4.5 rounded-2xl items-center`}>
+                                <Text style={tw`text-gray-400 font-bold text-lg`}>Waiting for Driver...</Text>
+                            </View>
+                        </View>
+                    ) : (
+                        <View style={tw`flex-row gap-4`}>
+                            {user?.role === 'driver' ? (
+                                <Pressable
+                                    onPress={handleAction}
+                                    style={tw`flex-1 bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg`}
+                                >
+                                    <Text style={tw`text-white font-bold text-lg`}>
+                                        {ride?.status === 'accepted' ? 'Start Trip' : 'Complete Trip'}
+                                    </Text>
+                                </Pressable>
+                            ) : (
+                                <View style={tw`flex-1 bg-gray-100 py-4.5 rounded-2xl items-center`}>
+                                    <Text style={tw`text-gray-400 font-bold text-lg`}>Trip in Progress...</Text>
+                                </View>
+                            )}
+                            <Pressable 
+                                onPress={() => {
+                                    cancelRide(rideId);
+                                    router.replace('/(tabs)');
+                                }}
+                                style={tw`w-16 h-14 bg-red-50 rounded-2xl items-center justify-center`}
+                            >
+                                <Ionicons name="close-circle-outline" size={28} color="#EF4444" />
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
 
                 {/* Modal Overlays */}
@@ -286,15 +443,59 @@ export default function RequestRentScreen() {
                                 </View>
                             </View>
 
+                            {modalStep === 'requesting' && (
+                                <View style={tw`items-center py-4`}>
+                                    <View style={tw`items-center mb-6`}>
+                                        <MaterialCommunityIcons name="car-search" size={60} color="#10B981" />
+                                        <Text style={tw`text-xl font-bold text-gray-800 mt-2`}>Finding a Driver</Text>
+                                        <Text style={tw`text-gray-400 text-center text-sm px-4 mt-1`}>
+                                            Connecting you with online drivers nearby...
+                                        </Text>
+                                    </View>
+
+                                    {/* Active Drivers List */}
+                                    <View style={tw`w-full max-h-60 mb-6`}>
+                                        <ScrollView showsVerticalScrollIndicator={false}>
+                                            {onlineDrivers.length > 0 ? (
+                                                onlineDrivers.map((driver: any) => (
+                                                    <View key={driver._id} style={tw`flex-row items-center bg-gray-50 rounded-2xl p-3 mb-2 border border-gray-100`}>
+                                                        <View style={tw`w-10 h-10 rounded-full bg-blue-100 overflow-hidden`}>
+                                                            <Image 
+                                                                source={driver.avatar ? { uri: driver.avatar } : require('../../assets/images/image.png')} 
+                                                                style={tw`w-full h-full`}
+                                                            />
+                                                        </View>
+                                                        <View style={tw`ml-3 flex-1`}>
+                                                            <Text style={tw`font-bold text-gray-800`}>{driver.name || 'Driver'}</Text>
+                                                            <View style={tw`flex-row items-center`}>
+                                                                <Octicons name="dot-fill" size={12} color="#10B981" />
+                                                                <Text style={tw`text-xs text-gray-500 ml-1`}>Online Now</Text>
+                                                            </View>
+                                                        </View>
+                                                        <ActivityIndicator size="small" color="#10B981" />
+                                                    </View>
+                                                ))
+                                            ) : (
+                                                <View style={tw`items-center py-4`}>
+                                                    <Text style={tw`text-gray-400 italic`}>Searching for online drivers...</Text>
+                                                </View>
+                                            )}
+                                        </ScrollView>
+                                    </View>
+
+                                    <ActivityIndicator size="large" color="#10B981" />
+                                </View>
+                            )}
+
                             {modalStep === 'success' && (
                                 <View style={tw`items-center`}>
-                                    <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>Payment Success</Text>
+                                    <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>Trip Completed</Text>
                                     <Text style={tw`text-gray-400 text-center text-base mb-6`}>
-                                        Your money has been successfully sent to{"\n"}Sergio Ramasis
+                                        The trip has been successfully completed by{"\n"}{user?.role === 'rider' ? (ride?.driver?.name || 'your driver') : (ride?.rider?.name || 'your rider')}
                                     </Text>
                                     <View style={tw`items-center mb-8`}>
-                                        <Text style={tw`text-gray-500 font-bold text-sm mb-1`}>Amount</Text>
-                                        <Text style={tw`text-4xl font-bold text-gray-800`}>$220</Text>
+                                        <Text style={tw`text-gray-500 font-bold text-sm mb-1`}>Fare Amount</Text>
+                                        <Text style={tw`text-4xl font-bold text-gray-800`}>${ride?.fare || '0'}</Text>
                                     </View>
 
                                     <View style={tw`w-full h-[1px] bg-gray-100 border-t border-dashed border-gray-300 mb-6`} />
@@ -340,20 +541,24 @@ export default function RequestRentScreen() {
                                             </Pressable>
                                         ))}
                                     </View>
-                                    <Text style={tw`text-2xl font-bold text-[#10B981] mb-2`}>Excellent</Text>
+                                    <Text style={tw`text-2xl font-bold text-[#10B981] mb-2`}>
+                                        {rating === 5 ? 'Excellent' : rating >= 3 ? 'Good' : 'Needs Improvement'}
+                                    </Text>
                                     <Text style={tw`text-gray-400 text-center text-sm mb-6`}>
-                                        You rated Sergio Ramasis {rating} star
+                                        You rated {user?.role === 'rider' ? ride?.driver?.name : ride?.rider?.name} {rating} star
                                     </Text>
 
                                     <TextInput
-                                        placeholder="Write your text"
+                                        placeholder="Write your feedback..."
                                         placeholderTextColor="#D1D5DB"
+                                        value={feedback}
+                                        onChangeText={setFeedback}
                                         multiline
                                         style={tw`w-full bg-white border border-gray-100 rounded-2xl px-4 py-4 h-28 text-base text-gray-800 mb-6`}
                                     />
 
                                     <Text style={tw`text-gray-700 font-bold text-lg mb-6`}>
-                                        Give some tips to Sergio Ramasis
+                                        Give some tips to {user?.role === 'rider' ? ride?.driver?.name : ride?.rider?.name}
                                     </Text>
 
                                     <View style={tw`flex-row flex-wrap justify-between gap-3 mb-8`}>
@@ -368,12 +573,15 @@ export default function RequestRentScreen() {
                                         ))}
                                     </View>
 
-                                    <Pressable style={tw`mb-8`}>
-                                        <Text style={tw`text-[#10B981] font-bold text-base border-b border-[#10B981]`}>Enter other amount</Text>
-                                    </Pressable>
-
                                     <Pressable
-                                        onPress={() => setModalStep('final')}
+                                        onPress={async () => {
+                                            try {
+                                                await rateRide({ id: rideId, rating, feedback }).unwrap();
+                                                setModalStep('final');
+                                            } catch (err) {
+                                                Alert.alert("Error", "Failed to submit rating");
+                                            }
+                                        }}
                                         style={tw`bg-[#10B981] w-full py-4.5 rounded-2xl items-center mb-2 shadow-md`}
                                     >
                                         <Text style={tw`text-white font-bold text-lg`}>Submit</Text>
