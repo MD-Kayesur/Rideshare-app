@@ -147,7 +147,10 @@ export default function CarDetailsScreen() {
                     <Pressable
                         onPress={() => router.push({
                             pathname: '/(pages)/request-rent',
-                            params: { name: vehicle.name }
+                            params: { 
+                                name: vehicle.name,
+                                transportType: currentCategory
+                            }
                         })}
                         style={tw`flex-1 bg-[#10B981] py-4 rounded-xl items-center shadow-md`}
                     >

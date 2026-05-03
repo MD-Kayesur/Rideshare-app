@@ -6,6 +6,8 @@ import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icon
 import DateTimePicker from '@react-native-community/datetimepicker';
 import tw from 'twrnc';
 import { useCreateRideMutation, useGetSingleRideQuery, useAcceptRideMutation, useStartRideMutation, useCompleteRideMutation, useCancelRideMutation, useRateRideMutation } from '../../redux/features/ride/rideApi';
+import { useGetNearbyDriversQuery } from '../../redux/features/driver/driverApi';
+import { useGetAllUsersQuery } from '../../redux/features/auth/authApi';
 import { socketService } from '../../utils/socket';
 import { useAppSelector } from '../../redux/hooks';
 
@@ -17,7 +19,7 @@ const paymentMethods = [
 ];
 
 export default function RequestRentScreen() {
-    const { name, rideId: initialRideId } = useLocalSearchParams();
+    const { name, rideId: initialRideId, transportType } = useLocalSearchParams();
     const user = useAppSelector(state => state.auth.user);
     const [rideId, setRideId] = useState<string | null>((initialRideId as string) || null);
     
@@ -45,6 +47,12 @@ export default function RequestRentScreen() {
     const [completeRide] = useCompleteRideMutation();
     const [cancelRide] = useCancelRideMutation();
     const [rateRide] = useRateRideMutation();
+
+    const carDisplayName = ride?.rideType || (typeof name === 'string' ? name : 'Car');
+    const carFirstName = carDisplayName.split(' ')[0];
+
+    const { data: allUsersData } = useGetAllUsersQuery(undefined, { skip: modalStep !== 'requesting' });
+    const onlineDrivers = allUsersData?.data?.filter((u: any) => u.role === 'driver' && u.isOnline) || [];
 
     useEffect(() => {
         if (rideId) {
@@ -80,8 +88,6 @@ export default function RequestRentScreen() {
     const formatDate = (date: Date) => date.toLocaleDateString();
     const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    const carDisplayName = ride?.rideType || (typeof name === 'string' ? name : 'Car');
-    const carFirstName = carDisplayName.split(' ')[0];
 
     const vehicleImages: any = {
         'car': require('../../assets/images/mustang.png'),
@@ -95,14 +101,14 @@ export default function RequestRentScreen() {
     const handleAction = async () => {
         if (!rideId) return;
         try {
-            if (ride.status === 'accepted') {
+            if (ride?.status === 'accepted') {
                 if (!otp || otp.length !== 4) {
                     Alert.alert("Error", "Please enter the 4-digit OTP from rider.");
                     return;
                 }
                 await startRide({ id: rideId, otp }).unwrap();
                 Alert.alert("Success", "Trip started!");
-            } else if (ride.status === 'ongoing') {
+            } else if (ride?.status === 'ongoing') {
                 await completeRide(rideId).unwrap();
             }
         } catch (err: any) {
@@ -127,13 +133,24 @@ export default function RequestRentScreen() {
                     fare: 220,
                     distance: 1.1,
                     duration: 10,
-                    rideType: carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
+                    rideType: (transportType as string)?.toLowerCase() === 'taxi' ? 'cng' : carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
                 };
 
                 const res = await createRide(rideData).unwrap();
                 if (res.success) {
                     setRideId(res.data?._id);
-                    setModalStep('requesting');
+                    
+                    if (selectedPayment !== '4') { // If not Cash
+                        router.push({
+                            pathname: '/(pages)/checkout',
+                            params: { 
+                                amount: 220, 
+                                rideId: res.data?._id 
+                            }
+                        });
+                    } else {
+                        setModalStep('requesting');
+                    }
                 }
             } catch (error: any) {
                 console.error('Ride creation error:', error);
@@ -172,10 +189,10 @@ export default function RequestRentScreen() {
                     {rideId && ride && (
                         <View style={tw`bg-[#10B981]/10 rounded-2xl p-4 mb-6`}>
                             <Text style={tw`text-[#10B981] font-bold text-center text-lg`}>
-                                {ride.status === 'pending' && 'Searching for Drivers...'}
-                                {ride.status === 'accepted' && 'Driver is on the way'}
-                                {ride.status === 'ongoing' && 'Trip in Progress'}
-                                {ride.status === 'completed' && 'Trip Completed'}
+                                {ride?.status === 'pending' && 'Searching for Drivers...'}
+                                {ride?.status === 'accepted' && 'Driver is on the way'}
+                                {ride?.status === 'ongoing' && 'Trip in Progress'}
+                                {ride?.status === 'completed' && 'Trip Completed'}
                             </Text>
                         </View>
                     )}
@@ -211,12 +228,12 @@ export default function RequestRentScreen() {
                         <View style={tw`mb-8`}>
                             <View style={tw`flex-row items-center bg-gray-50 rounded-2xl p-4 mb-4`}>
                                 <Image 
-                                    source={ride.driver?.avatar ? { uri: ride.driver.avatar } : require('../../assets/images/image.png')} 
+                                    source={ride?.driver?.avatar ? { uri: ride?.driver?.avatar } : require('../../assets/images/image.png')} 
                                     style={tw`w-16 h-16 rounded-full bg-blue-100`} 
                                 />
                                 <View style={tw`ml-4 flex-1`}>
-                                    <Text style={tw`text-lg font-bold text-gray-800`}>{ride.driver?.name || "Driver"}</Text>
-                                    <Text style={tw`text-gray-400`}>{ride.rideType.toUpperCase()}</Text>
+                                    <Text style={tw`text-lg font-bold text-gray-800`}>{ride?.driver?.name || "Driver"}</Text>
+                                    <Text style={tw`text-gray-400`}>{ride?.rideType?.toUpperCase() || ''}</Text>
                                 </View>
                                 <View style={tw`flex-row gap-2`}>
                                     <Pressable style={tw`w-10 h-10 rounded-full bg-[#E6F7F1] items-center justify-center`}>
@@ -232,14 +249,14 @@ export default function RequestRentScreen() {
                             </View>
 
                             {/* OTP Section */}
-                            {user?.role === 'rider' && ride.status === 'accepted' && (
+                            {user?.role === 'rider' && ride?.status === 'accepted' && (
                                 <View style={tw`items-center bg-yellow-50 rounded-2xl p-6`}>
                                     <Text style={tw`text-gray-500 mb-2`}>Share this OTP with Driver</Text>
-                                    <Text style={tw`text-4xl font-bold tracking-[8px] text-gray-800`}>{ride.otp}</Text>
+                                    <Text style={tw`text-4xl font-bold tracking-[8px] text-gray-800`}>{ride?.otp}</Text>
                                 </View>
                             )}
 
-                            {user?.role === 'driver' && ride.status === 'accepted' && (
+                            {user?.role === 'driver' && ride?.status === 'accepted' && (
                                 <View style={tw`bg-gray-50 rounded-2xl p-6`}>
                                     <Text style={tw`text-gray-500 mb-2 text-center`}>Enter Rider's OTP to Start Trip</Text>
                                     <TextInput 
@@ -427,12 +444,45 @@ export default function RequestRentScreen() {
                             </View>
 
                             {modalStep === 'requesting' && (
-                                <View style={tw`items-center py-6`}>
-                                    <MaterialCommunityIcons name="car-search" size={80} color="#10B981" />
-                                    <Text style={tw`text-2xl font-bold text-gray-800 mt-4 mb-2`}>Finding a Driver</Text>
-                                    <Text style={tw`text-gray-400 text-center text-base mb-6`}>
-                                        We are connecting you with the best available drivers nearby...
-                                    </Text>
+                                <View style={tw`items-center py-4`}>
+                                    <View style={tw`items-center mb-6`}>
+                                        <MaterialCommunityIcons name="car-search" size={60} color="#10B981" />
+                                        <Text style={tw`text-xl font-bold text-gray-800 mt-2`}>Finding a Driver</Text>
+                                        <Text style={tw`text-gray-400 text-center text-sm px-4 mt-1`}>
+                                            Connecting you with online drivers nearby...
+                                        </Text>
+                                    </View>
+
+                                    {/* Active Drivers List */}
+                                    <View style={tw`w-full max-h-60 mb-6`}>
+                                        <ScrollView showsVerticalScrollIndicator={false}>
+                                            {onlineDrivers.length > 0 ? (
+                                                onlineDrivers.map((driver: any) => (
+                                                    <View key={driver._id} style={tw`flex-row items-center bg-gray-50 rounded-2xl p-3 mb-2 border border-gray-100`}>
+                                                        <View style={tw`w-10 h-10 rounded-full bg-blue-100 overflow-hidden`}>
+                                                            <Image 
+                                                                source={driver.avatar ? { uri: driver.avatar } : require('../../assets/images/image.png')} 
+                                                                style={tw`w-full h-full`}
+                                                            />
+                                                        </View>
+                                                        <View style={tw`ml-3 flex-1`}>
+                                                            <Text style={tw`font-bold text-gray-800`}>{driver.name || 'Driver'}</Text>
+                                                            <View style={tw`flex-row items-center`}>
+                                                                <Octicons name="dot-fill" size={12} color="#10B981" />
+                                                                <Text style={tw`text-xs text-gray-500 ml-1`}>Online Now</Text>
+                                                            </View>
+                                                        </View>
+                                                        <ActivityIndicator size="small" color="#10B981" />
+                                                    </View>
+                                                ))
+                                            ) : (
+                                                <View style={tw`items-center py-4`}>
+                                                    <Text style={tw`text-gray-400 italic`}>Searching for online drivers...</Text>
+                                                </View>
+                                            )}
+                                        </ScrollView>
+                                    </View>
+
                                     <ActivityIndicator size="large" color="#10B981" />
                                 </View>
                             )}

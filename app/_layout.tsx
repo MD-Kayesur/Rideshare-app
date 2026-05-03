@@ -153,10 +153,14 @@ function RootLayoutNav() {
   );
 }
 
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <RootLayoutNav />
+      <SafeAreaProvider>
+        <RootLayoutNav />
+      </SafeAreaProvider>
     </Provider>
   );
 }

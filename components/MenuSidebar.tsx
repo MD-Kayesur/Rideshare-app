@@ -5,8 +5,9 @@ import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import tw from 'twrnc';
 
-import { useAppSelector } from "../redux/hooks";
-import { useToggleOnlineMutation } from "../redux/features/auth/authApi";
+import { useAppSelector, useAppDispatch } from "../redux/hooks";
+import { useToggleOnlineMutation, useGetMeQuery } from "../redux/features/auth/authApi";
+import { setUser } from "../redux/features/auth/authSlice";
 
 interface MenuSidebarProps {
     isOpen: boolean;
@@ -17,7 +18,10 @@ interface MenuSidebarProps {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) => {
-    const user = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
+    const token = useAppSelector((state) => state.auth.token);
+    const { data: meData } = useGetMeQuery(undefined, { skip: !isOpen });
+    const user = meData?.data || useAppSelector((state) => state.auth.user);
     const [toggleOnline] = useToggleOnlineMutation();
     const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
 
@@ -135,7 +139,12 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                     <Pressable 
                                         onPress={async () => {
                                             try {
-                                                await toggleOnline({ isOnline: !user?.isOnline }).unwrap();
+                                                const newStatus = !user?.isOnline;
+                                                const res = await toggleOnline({ isOnline: newStatus }).unwrap();
+                                                if (res.success) {
+                                                    // Sync with auth slice for other components
+                                                    dispatch(setUser({ user: res.data, token: token as string }));
+                                                }
                                             } catch (err) {
                                                 console.error("Toggle online failed", err);
                                             }
