@@ -13,12 +13,63 @@ if (Platform.OS === 'web') {
   require('./global.css');
 }
 
+import { useRef } from 'react';
 import { socketService } from '../utils/socket';
-import { Alert } from 'react-native';
+import { Alert, Animated, Pressable, Text } from 'react-native';
+import tw from 'twrnc';
+import { router } from 'expo-router';
 
 function RootLayoutNav() {
   const dispatch = useAppDispatch();
   const [isReady, setIsReady] = useState(false);
+  const [toast, setToast] = useState<any>(null);
+  const toastAnim = useRef(new Animated.Value(-100)).current;
+
+  const showToast = (data: any) => {
+    setToast(data);
+    Animated.spring(toastAnim, {
+      toValue: 20,
+      useNativeDriver: true,
+      tension: 20,
+      friction: 7
+    }).start();
+
+    setTimeout(() => {
+      hideToast();
+    }, 5000);
+  };
+
+  const hideToast = () => {
+    Animated.timing(toastAnim, {
+      toValue: -100,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setToast(null));
+  };
+
+  const handleToastClick = async () => {
+    if (!toast) return;
+    hideToast();
+    
+    if (toast.type === 'complaint' && toast.metadata?.userId) {
+        // Find or create chat with the user who complained
+        try {
+            // Note: In _layout we don't have access to chat mutations directly easily 
+            // without being inside a provider, but we are inside Provider.
+            // However, it's better to just navigate to notifications or a specific route.
+            // For now, I'll redirect to a special route or just the chat list.
+            router.push({
+                pathname: '/(pages)/chat',
+                params: {
+                    userId: toast.metadata.userId,
+                    userName: "User"
+                }
+            });
+        } catch (e) {}
+    } else {
+        router.push('/(pages)/notifications');
+    }
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -36,9 +87,13 @@ function RootLayoutNav() {
             socket.emit('join', user._id || user.id);
           }
 
-          // Global notification listener
+          // Global notification listeners
           socket.on('notification', (data: any) => {
-            Alert.alert(data.title || "Notification", data.message);
+            showToast(data);
+          });
+
+          socket.on('admin-notification', (data: any) => {
+            showToast(data);
           });
         }
       } catch (error) {
@@ -77,6 +132,20 @@ function RootLayoutNav() {
         <Stack.Screen name="+not-found" options={{ headerShown: true }} />
       </Stack>
       <RideRequestOverlay />
+
+      {toast && (
+        <Animated.View 
+          style={[
+            tw`absolute left-4 right-4 bg-white rounded-3xl p-4 shadow-xl border-l-4 border-[#10B981] z-50`,
+            { transform: [{ translateY: toastAnim }] }
+          ]}
+        >
+          <Pressable onPress={handleToastClick}>
+            <Text style={tw`font-bold text-gray-800 text-lg`}>{toast.title}</Text>
+            <Text style={tw`text-gray-500 text-sm mt-1`} numberOfLines={2}>{toast.message}</Text>
+          </Pressable>
+        </Animated.View>
+      )}
     </>
   );
 }

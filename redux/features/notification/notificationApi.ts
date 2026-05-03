@@ -1,25 +1,33 @@
-import { baseApi } from "../../hooks/baseApi";
+import { baseApi } from '../../hooks/baseApi';
 
-const notificationApi = baseApi.injectEndpoints({
+export const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getNotifications: builder.query({
+    getMyNotifications: builder.query<any, void>({
       query: () => ({
-        url: "/notifications",
-        method: "GET",
+        url: '/notifications/me',
+        method: 'GET',
       }),
-      providesTags: ["Complaint" as any],
+      providesTags: ['Notification'],
     }),
-    markNotificationAsRead: builder.mutation({
+    getAllNotifications: builder.query<any, void>({
+      query: () => ({
+        url: '/notifications',
+        method: 'GET',
+      }),
+      providesTags: ['Notification'],
+    }),
+    markAsRead: builder.mutation<any, string>({
       query: (id) => ({
         url: `/notifications/${id}/read`,
-        method: "PATCH",
+        method: 'PATCH',
       }),
-      invalidatesTags: ["Complaint" as any],
+      invalidatesTags: ['Notification'],
     }),
   }),
 });
 
 export const {
-  useGetNotificationsQuery,
-  useMarkNotificationAsReadMutation,
+  useGetMyNotificationsQuery,
+  useGetAllNotificationsQuery,
+  useMarkAsReadMutation,
 } = notificationApi;
