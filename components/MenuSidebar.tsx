@@ -1,3 +1,4 @@
+// @refresh reset
 import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, Image, Animated, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,7 +7,8 @@ import { router } from "expo-router";
 import tw from 'twrnc';
 
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { useToggleOnlineMutation, useGetMeQuery } from "../redux/features/auth/authApi";
+import { useGetMeQuery } from "../redux/features/auth/authApi";
+import { baseApi } from "../redux/hooks/baseApi";
 import { setUser } from "../redux/features/auth/authSlice";
 
 interface MenuSidebarProps {
@@ -21,8 +23,8 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
     const dispatch = useAppDispatch();
     const token = useAppSelector((state) => state.auth.token);
     const { data: meData } = useGetMeQuery(undefined, { skip: !isOpen });
-    const user = meData?.data || useAppSelector((state) => state.auth.user);
-    const [toggleOnline] = useToggleOnlineMutation();
+    const fallbackUser = useAppSelector((state) => state.auth.user);
+    const user = meData?.data || fallbackUser;
     const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
 
     const vehicleTypes = [
@@ -140,7 +142,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                         onPress={async () => {
                                             try {
                                                 const newStatus = !user?.isOnline;
-                                                const res = await toggleOnline({ isOnline: newStatus }).unwrap();
+                                                const res = await dispatch((baseApi as any).endpoints.toggleOnline.initiate({ isOnline: newStatus })).unwrap();
                                                 if (res.success) {
                                                     // Sync with auth slice for other components
                                                     dispatch(setUser({ user: res.data, token: token as string }));
