@@ -1,0 +1,130 @@
+{
+    "bicycle": [
+        {
+            "model": "Giant Escape 3",
+            "plateNumber": "BIC-1001",
+            "licenseNumber": "CYC-458721",
+            "airConditioning": false
+        },
+        {
+            "model": "Trek FX 1",
+            "plateNumber": "BIC-1002",
+            "licenseNumber": "CYC-458722",
+            "airConditioning": false
+        },
+        {
+            "model": "Merida Crossway 20",
+            "plateNumber": "BIC-1003",
+            "licenseNumber": "CYC-458723",
+            "airConditioning": false
+        },
+        {
+            "model": "Hero Sprint Pro",
+            "plateNumber": "BIC-1004",
+            "licenseNumber": "CYC-458724",
+            "airConditioning": false
+        },
+        {
+            "model": "Phoenix Roadster",
+            "plateNumber": "BIC-1005",
+            "licenseNumber": "CYC-458725",
+            "airConditioning": false
+        }
+    ],
+    "bike": [
+        {
+            "model": "Yamaha R15 V4",
+            "plateNumber": "BIK-2001",
+            "licenseNumber": "MOT-785421",
+            "airConditioning": false
+        },
+        {
+            "model": "Honda CBR 150R",
+            "plateNumber": "BIK-2002",
+            "licenseNumber": "MOT-785422",
+            "airConditioning": false
+        },
+        {
+            "model": "Suzuki Gixxer",
+            "plateNumber": "BIK-2003",
+            "licenseNumber": "MOT-785423",
+            "airConditioning": false
+        },
+        {
+            "model": "Bajaj Pulsar 150",
+            "plateNumber": "BIK-2004",
+            "licenseNumber": "MOT-785424",
+            "airConditioning": false
+        },
+        {
+            "model": "TVS Apache RTR 160",
+            "plateNumber": "BIK-2005",
+            "licenseNumber": "MOT-785425",
+            "airConditioning": false
+        }
+    ],
+    "car": [
+        {
+            "model": "Toyota Corolla",
+            "plateNumber": "CAR-3001",
+            "licenseNumber": "DRV-965421",
+            "airConditioning": true
+        },
+        {
+            "model": "Honda Civic",
+            "plateNumber": "CAR-3002",
+            "licenseNumber": "DRV-965422",
+            "airConditioning": true
+        },
+        {
+            "model": "Hyundai Elantra",
+            "plateNumber": "CAR-3003",
+            "licenseNumber": "DRV-965423",
+            "airConditioning": true
+        },
+        {
+            "model": "Mazda 3",
+            "plateNumber": "CAR-3004",
+            "licenseNumber": "DRV-965424",
+            "airConditioning": true
+        },
+        {
+            "model": "Kia Rio",
+            "plateNumber": "CAR-3005",
+            "licenseNumber": "DRV-965425",
+            "airConditioning": true
+        }
+    ],
+    "taxi": [
+        {
+            "model": "Toyota Prius Taxi",
+            "plateNumber": "TAX-4001",
+            "licenseNumber": "TAX-852741",
+            "airConditioning": true
+        },
+        {
+            "model": "Nissan Sunny Taxi",
+            "plateNumber": "TAX-4002",
+            "licenseNumber": "TAX-852742",
+            "airConditioning": true
+        },
+        {
+            "model": "Hyundai Accent Taxi",
+            "plateNumber": "TAX-4003",
+            "licenseNumber": "TAX-852743",
+            "airConditioning": true
+        },
+        {
+            "model": "Honda City Taxi",
+            "plateNumber": "TAX-4004",
+            "licenseNumber": "TAX-852744",
+            "airConditioning": true
+        },
+        {
+            "model": "Suzuki Dzire Taxi",
+            "plateNumber": "TAX-4005",
+            "licenseNumber": "TAX-852745",
+            "airConditioning": true
+        }
+    ]
+}

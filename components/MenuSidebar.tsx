@@ -161,6 +161,19 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                 </View>
 
                                 <Pressable
+                                    onPress={() => {
+                                        onClose();
+                                        router.push('/(pages)/my-cars');
+                                    }}
+                                    style={tw`flex-row items-center px-10 py-3`}
+                                >
+                                    <View style={tw`w-8 items-center`}>
+                                        <Ionicons name="car-sport-outline" size={24} color="#10B981" />
+                                    </View>
+                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4 flex-1`}>My Cars</Text>
+                                </Pressable>
+
+                                <Pressable
                                     onPress={() => setIsAddVehicleOpen(!isAddVehicleOpen)}
                                     style={tw`flex-row items-center px-10 py-3`}
                                 >
