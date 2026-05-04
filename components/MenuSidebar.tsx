@@ -21,7 +21,8 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
     const dispatch = useAppDispatch();
     const token = useAppSelector((state) => state.auth.token);
     const { data: meData } = useGetMeQuery(undefined, { skip: !isOpen });
-    const user = meData?.data || useAppSelector((state) => state.auth.user);
+    const authUser = useAppSelector((state) => state.auth.user);
+    const user = meData?.data || authUser;
     const [toggleOnline] = useToggleOnlineMutation();
     const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
 

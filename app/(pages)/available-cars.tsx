@@ -106,7 +106,7 @@ export default function AvailableCarsScreen() {
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`pb-10`}>
-                    {vehicles.map((vehicle) => (
+                    {vehicles.map((vehicle: any) => (
                         <View
                             key={vehicle.id}
                             style={tw`bg-[#E6F7F1]/30 border border-[#10B981]/10 rounded-3xl p-5 mb-6`}

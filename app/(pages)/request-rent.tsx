@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Image, ScrollView, TextInput, StatusBar, Alert, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import tw from 'twrnc';
 import { useCreateRideMutation, useGetSingleRideQuery, useAcceptRideMutation, useStartRideMutation, useCompleteRideMutation, useCancelRideMutation, useRateRideMutation } from '../../redux/features/ride/rideApi';
