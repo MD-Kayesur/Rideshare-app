@@ -88,15 +88,25 @@ function RootLayoutNav() {
           const socket = socketService.connect();
           if (user?._id || user?.id) {
             socket.emit('join', user._id || user.id);
+            if (user.role === 'admin') {
+              socket.emit('join', 'admin');
+            }
           }
 
           // Global notification listeners
           socket.on('notification', (data: any) => {
-            showToast(data);
+            const currentUserId = user?._id || user?.id;
+            if (data.metadata?.userId !== currentUserId) {
+              showToast(data);
+            }
           });
 
           socket.on('admin-notification', (data: any) => {
-            showToast(data);
+            if (user?.role !== 'admin') return; // Security: only admins should see these
+            const currentUserId = user?._id || user?.id;
+            if (data.metadata?.userId !== currentUserId) {
+              showToast(data);
+            }
           });
         }
       } catch (error) {
