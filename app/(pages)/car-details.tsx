@@ -5,23 +5,30 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGetMyDriverProfileQuery } from '../../redux/features/driver/driverApi';
 import tw from 'twrnc';
-import { transportData } from './available-cars';
-
 export default function CarDetailsScreen() {
-    const { carId, name, transportType, isMyCar } = useLocalSearchParams();
+    const { carId, name, transportType, isMyCar, image, vehicleNumber, fuel, seats, isAC } = useLocalSearchParams();
     const { data: myProfile } = useGetMyDriverProfileQuery({}, { skip: !isMyCar });
     const currentCategory = (transportType as string) || 'Car';
-    const vehicles = transportData[currentCategory] || [];
     
     // Find the specific vehicle selected or use my profile data
-    let vehicle = vehicles.find(v => v.id === carId);
+    let vehicle: any = {
+        id: carId,
+        name: name,
+        image: image ? { uri: image as string } : { uri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000&auto=format&fit=crop' },
+        rating: 4.9,
+        reviews: 531,
+        fuel: fuel,
+        seats: seats,
+        vehicleNumber: vehicleNumber,
+        details: { isAC: isAC === 'true' }
+    };
     
     if (isMyCar && myProfile?.data) {
         const driver = myProfile.data;
         vehicle = {
             id: driver._id,
             name: driver.vehicleModel,
-            image: driver.vehicleImage ? { uri: driver.vehicleImage } : require('../../assets/images/car_transparent.png'),
+            image: driver.vehicleImage ? { uri: driver.vehicleImage } : { uri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000&auto=format&fit=crop' },
             rating: driver.rating || 5,
             reviews: 0,
             vehicleType: driver.vehicleType,
@@ -29,8 +36,6 @@ export default function CarDetailsScreen() {
             licenseNumber: driver.licenseNumber,
             details: driver.details
         };
-    } else if (!vehicle) {
-        vehicle = { name: name as string, image: null, rating: 5, reviews: 0 };
     }
 
     const specs = [

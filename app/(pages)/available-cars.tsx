@@ -89,7 +89,12 @@ export default function AvailableCarsScreen() {
                                         carId: vehicle.id, 
                                         name: vehicle.name, 
                                         transportType: currentTransportType,
-                                        driverId: vehicle.isReal ? vehicle.userId : undefined
+                                        driverId: vehicle.isReal ? vehicle.userId : undefined,
+                                        image: typeof vehicle.image === 'string' ? vehicle.image : vehicle.image?.uri,
+                                        vehicleNumber: vehicle.vehicleNumber,
+                                        fuel: vehicle.fuel,
+                                        seats: vehicle.seats,
+                                        isAC: vehicle.details?.isAC ? 'true' : 'false'
                                     }
                                 })}
                                 style={tw`bg-white border border-[#10B981] py-4 rounded-xl items-center`}
