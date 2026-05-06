@@ -11,6 +11,7 @@ import {
     useUpdateDriverProfileMutation, 
     useUploadImageMutation 
 } from "../../redux/features/driver/driverApi";
+import { useAddVehicleMutation } from "../../redux/features/vehicle/vehicleApi";
 
 export default function AddVehicleScreen() {
     const { type = 'car' } = useLocalSearchParams<{ type: string }>();
@@ -20,6 +21,7 @@ export default function AddVehicleScreen() {
     const [createDriver, { isLoading: isCreating }] = useCreateDriverMutation();
     const [updateDriver, { isLoading: isUpdating }] = useUpdateDriverProfileMutation();
     const [uploadImage, { isLoading: isUploading }] = useUploadImageMutation();
+    const [addVehicle, { isLoading: isAdding }] = useAddVehicleMutation();
 
     // Form State
     const [vehicleModel, setVehicleModel] = useState("");
@@ -52,28 +54,7 @@ export default function AddVehicleScreen() {
         });
 
         if (!result.canceled) {
-            const asset = result.assets[0];
-            
-            // In a real app, we would upload here
-            try {
-                const formData = new FormData();
-                // @ts-ignore
-                formData.append('file', {
-                    uri: asset.uri,
-                    name: `vehicle_${Date.now()}.jpg`,
-                    type: 'image/jpeg',
-                });
-
-                // Simulate upload if server is not ready, or call the API
-                // For now, we'll set the URI locally and upload during handleSave or now
-                setVehicleImage(asset.uri);
-                
-                // If you want instant upload:
-                // const uploadRes = await uploadImage(formData).unwrap();
-                // if (uploadRes.success) setVehicleImage(uploadRes.data.url);
-            } catch (err) {
-                Alert.alert("Upload Failed", "Could not upload image. Please try again.");
-            }
+            setVehicleImage(result.assets[0].uri);
         }
     };
 
@@ -89,33 +70,33 @@ export default function AddVehicleScreen() {
             vehicleNumber: type !== 'cycle' ? vehicleNumber : undefined,
             licenseNumber: type !== 'cycle' ? licenseNumber : undefined,
             vehicleImage,
-            driverPhoto,
-            driverBio,
             details: type === 'car' ? { isAC } : {},
         };
 
         try {
-            let res;
-            if (profileData?.data) {
-                res = await updateDriver(payload).unwrap();
-            } else {
-                res = await createDriver(payload).unwrap();
+            // First ensure driver profile exists
+            if (!profileData?.data) {
+                await createDriver({
+                    vehicleType: type,
+                    vehicleModel,
+                    vehicleNumber,
+                    licenseNumber,
+                    vehicleImage,
+                    driverPhoto,
+                    driverBio,
+                    details: type === 'car' ? { isAC } : {},
+                }).unwrap();
             }
 
+            // Then add to my vehicles list
+            const res = await addVehicle(payload).unwrap();
+
             if (res.success) {
-                Alert.alert("Success", `Vehicle ${profileData?.data ? 'updated' : 'added'} successfully!`);
-                router.push({
-                    pathname: '/(pages)/car-details',
-                    params: { 
-                        carId: res.data._id, 
-                        name: res.data.vehicleModel, 
-                        transportType: type,
-                        isMyCar: 'true'
-                    }
-                });
+                Alert.alert("Success", "Vehicle added to your fleet!");
+                router.push("/(pages)/my-cars");
             }
         } catch (error: any) {
-            Alert.alert("Error", error?.data?.message || "Failed to save vehicle details");
+            Alert.alert("Error", error?.data?.message || "Failed to add vehicle");
         }
     };
 

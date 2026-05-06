@@ -1,4 +1,3 @@
-// @refresh reset
 import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, Image, Animated, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,8 +6,7 @@ import { router } from "expo-router";
 import tw from 'twrnc';
 
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { useGetMeQuery } from "../redux/features/auth/authApi";
-import { baseApi } from "../redux/hooks/baseApi";
+import { useToggleOnlineMutation, useGetMeQuery } from "../redux/features/auth/authApi";
 import { setUser } from "../redux/features/auth/authSlice";
 
 interface MenuSidebarProps {
@@ -23,18 +21,13 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
     const dispatch = useAppDispatch();
     const token = useAppSelector((state) => state.auth.token);
     const { data: meData } = useGetMeQuery(undefined, { skip: !isOpen });
-    const fallbackUser = useAppSelector((state) => state.auth.user);
-    const user = meData?.data || fallbackUser;
-    const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
+    const authUser = useAppSelector((state) => state.auth.user);
+    const user = meData?.data || authUser;
+    const [toggleOnline] = useToggleOnlineMutation();
 
-    const vehicleTypes = [
-        { id: 'v1', title: 'Car', icon: 'car-outline' },
-        { id: 'v2', title: 'Bike', icon: 'bicycle-outline' },
-        { id: 'v3', title: 'Cycle', icon: 'bicycle-outline' },
-        { id: 'v4', title: 'CNG', icon: 'car-sport-outline' },
-    ];
     const menuItems = [
         { id: '1', title: 'History', icon: 'file', provider: 'Octicons', route: '/(pages)/history' },
+        { id: '1b', title: 'Payment History', icon: 'card-outline', provider: 'Ionicons', route: '/(pages)/payment-history' },
         { id: '1a', title: 'Messages', icon: 'chatbubbles-outline', provider: 'Ionicons', route: '/chat_history' },
         { id: '2', title: 'Complain', icon: 'chatbubble-ellipses-outline', provider: 'Ionicons', route: '/(pages)/complain' },
         { id: '3', title: 'Referral', icon: 'account-group-outline', provider: 'MaterialCommunityIcons', route: '/(pages)/referral' },
@@ -142,7 +135,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                         onPress={async () => {
                                             try {
                                                 const newStatus = !user?.isOnline;
-                                                const res = await dispatch((baseApi as any).endpoints.toggleOnline.initiate({ isOnline: newStatus })).unwrap();
+                                                const res = await toggleOnline({ isOnline: newStatus }).unwrap();
                                                 if (res.success) {
                                                     // Sync with auth slice for other components
                                                     dispatch(setUser({ user: res.data, token: token as string }));
@@ -163,7 +156,7 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                 <Pressable
                                     onPress={() => {
                                         onClose();
-                                        router.push('/(pages)/my-cars');
+                                        router.push('/(pages)/my-cars' as any);
                                     }}
                                     style={tw`flex-row items-center px-10 py-3`}
                                 >
@@ -172,42 +165,6 @@ export const MenuSidebar = ({ isOpen, onClose, animValue }: MenuSidebarProps) =>
                                     </View>
                                     <Text style={tw`text-lg font-bold text-[#10B981] ml-4 flex-1`}>My Cars</Text>
                                 </Pressable>
-
-                                <Pressable
-                                    onPress={() => setIsAddVehicleOpen(!isAddVehicleOpen)}
-                                    style={tw`flex-row items-center px-10 py-3`}
-                                >
-                                    <View style={tw`w-8 items-center`}>
-                                        <Ionicons name="add-circle-outline" size={24} color="#10B981" />
-                                    </View>
-                                    <Text style={tw`text-lg font-bold text-[#10B981] ml-4 flex-1`}>Add Vehicle</Text>
-                                    <Ionicons 
-                                        name={isAddVehicleOpen ? "chevron-up" : "chevron-down"} 
-                                        size={20} 
-                                        color="#10B981" 
-                                    />
-                                </Pressable>
-
-                                {isAddVehicleOpen && (
-                                    <View style={tw`bg-gray-50/50 py-1`}>
-                                        {vehicleTypes.map(v => (
-                                            <Pressable
-                                                key={v.id}
-                                                onPress={() => {
-                                                    onClose();
-                                                    router.push({
-                                                        pathname: "/(pages)/add-vehicle" as any,
-                                                        params: { type: v.title.toLowerCase() }
-                                                    });
-                                                }}
-                                                style={tw`flex-row items-center px-16 py-2.5`}
-                                            >
-                                                <Ionicons name={v.icon as any} size={18} color="#6B7280" />
-                                                <Text style={tw`text-base text-gray-600 ml-3`}>{v.title}</Text>
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                )}
                             </View>
                         )}
 

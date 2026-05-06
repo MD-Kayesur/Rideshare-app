@@ -1,43 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Image, ScrollView, StatusBar, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Pressable, ScrollView, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
+import { usePaymentSheet } from '@stripe/stripe-react-native';
+import { useCreatePaymentIntentMutation } from '../../redux/features/payment/paymentApi';
+import { Platform } from 'react-native';
 
 export default function CheckoutScreen() {
     const { amount, rideId } = useLocalSearchParams();
-    const [cardNumber, setCardNumber] = useState('');
-    const [expiryDate, setExpiryDate] = useState('');
-    const [cvv, setCvv] = useState('');
-    const [cardHolder, setCardHolder] = useState('');
+    const [createPaymentIntent, { isLoading: isCreatingIntent }] = useCreatePaymentIntentMutation();
+    
+    // Safely initialize hooks
+    const paymentSheet = Platform.OS !== 'web' ? usePaymentSheet() : { initPaymentSheet: () => {}, presentPaymentSheet: () => {}, loading: false };
+    const { initPaymentSheet, presentPaymentSheet, loading: stripeLoading } = paymentSheet;
+    
+    const [isReady, setIsReady] = useState(false);
 
-    const handlePayment = () => {
-        if (!cardNumber || !expiryDate || !cvv || !cardHolder) {
-            Alert.alert("Error", "Please fill in all card details");
-            return;
+    useEffect(() => {
+        if (Platform.OS !== 'web') {
+            initializePayment();
         }
-        
-        // Mock payment process
-        Alert.alert(
-            "Payment Successful",
-            "Your payment has been processed successfully.",
-            [
-                { 
-                    text: "OK", 
-                    onPress: () => {
-                        if (rideId) {
+    }, []);
+
+    const initializePayment = async () => {
+        try {
+            const res = await createPaymentIntent({
+                rideId,
+                gateway: 'stripe'
+            }).unwrap();
+
+            if (res.success && res.data.clientSecret) {
+                const initResult: any = await initPaymentSheet({
+                    merchantDisplayName: "Rideshare App",
+                    paymentIntentClientSecret: res.data.clientSecret,
+                    defaultBillingDetails: {
+                        name: 'User Name',
+                    },
+                    allowsDelayedPaymentMethods: false,
+                });
+
+                if (!initResult?.error) {
+                    setIsReady(true);
+                } else {
+                    Alert.alert("Error", initResult.error.message);
+                }
+            }
+        } catch (error: any) {
+            console.error("Payment init error:", error);
+            Alert.alert("Error", error?.data?.message || "Failed to initialize payment");
+        }
+    };
+
+    const handlePayment = async () => {
+        const result: any = await presentPaymentSheet();
+
+        if (result?.error) {
+            Alert.alert(`Error code: ${result.error.code}`, result.error.message);
+        } else {
+            Alert.alert(
+                "Payment Successful",
+                "Your ride has been paid successfully!",
+                [
+                    { 
+                        text: "OK", 
+                        onPress: () => {
                             router.replace({
                                 pathname: '/(pages)/request-rent',
                                 params: { rideId }
                             });
-                        } else {
-                            router.replace('/(tabs)');
                         }
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
     };
 
     return (
@@ -54,104 +91,58 @@ export default function CheckoutScreen() {
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-6 pb-10`}>
                     {/* Amount Card */}
-                    <View style={tw`bg-[#10B981] rounded-3xl p-6 mb-8 shadow-lg`}>
-                        <Text style={tw`text-white/80 text-sm mb-1`}>Total Amount</Text>
-                        <Text style={tw`text-white text-4xl font-bold`}>${amount || '220.00'}</Text>
-                        <View style={tw`flex-row items-center mt-4 bg-white/20 self-start px-3 py-1 rounded-full`}>
-                            <Ionicons name="shield-checkmark" size={14} color="white" />
-                            <Text style={tw`text-white text-xs ml-1 font-medium`}>Secure Payment</Text>
+                    <View style={tw`bg-[#10B981] rounded-3xl p-8 mb-8 shadow-lg items-center`}>
+                        <Text style={tw`text-white/80 text-lg mb-2`}>Total Amount</Text>
+                        <Text style={tw`text-white text-5xl font-black`}>${amount || '220.00'}</Text>
+                        <View style={tw`flex-row items-center mt-6 bg-white/20 px-4 py-2 rounded-full`}>
+                            <Ionicons name="shield-checkmark" size={16} color="white" />
+                            <Text style={tw`text-white text-sm ml-2 font-bold`}>Secure Stripe Checkout</Text>
                         </View>
                     </View>
 
-                    {/* Card Preview */}
-                    <View style={tw`bg-gray-900 rounded-3xl p-6 mb-8 h-48 justify-between shadow-xl`}>
-                        <View style={tw`flex-row justify-between items-center`}>
-                            <MaterialCommunityIcons name="chip" size={40} color="#FBBF24" />
-                            <FontAwesome name="cc-visa" size={32} color="white" />
+                    <View style={tw`bg-gray-50 rounded-3xl p-6 border border-gray-100`}>
+                        <Text style={tw`text-gray-800 font-bold text-lg mb-4`}>Trip Summary</Text>
+                        <View style={tw`flex-row justify-between mb-3`}>
+                            <Text style={tw`text-gray-500`}>Ride Fare</Text>
+                            <Text style={tw`text-gray-800 font-bold`}>${amount}</Text>
                         </View>
-                        <View>
-                            <Text style={tw`text-white text-xl tracking-widest font-bold mb-2`}>
-                                {cardNumber ? cardNumber.replace(/\d{4}(?=.)/g, '$& ') : '**** **** **** ****'}
-                            </Text>
-                            <View style={tw`flex-row justify-between items-end`}>
-                                <View>
-                                    <Text style={tw`text-white/50 text-[10px] uppercase`}>Card Holder</Text>
-                                    <Text style={tw`text-white text-sm font-bold`}>{cardHolder || 'FULL NAME'}</Text>
-                                </View>
-                                <View>
-                                    <Text style={tw`text-white/50 text-[10px] uppercase`}>Expires</Text>
-                                    <Text style={tw`text-white text-sm font-bold`}>{expiryDate || 'MM/YY'}</Text>
-                                </View>
-                            </View>
+                        <View style={tw`flex-row justify-between mb-3`}>
+                            <Text style={tw`text-gray-500`}>Booking Fee</Text>
+                            <Text style={tw`text-gray-800 font-bold`}>$0.00</Text>
+                        </View>
+                        <View style={tw`h-[1px] bg-gray-200 my-3`} />
+                        <View style={tw`flex-row justify-between`}>
+                            <Text style={tw`text-gray-800 font-bold text-lg`}>Total</Text>
+                            <Text style={tw`text-[#10B981] font-bold text-lg`}>${amount}</Text>
                         </View>
                     </View>
 
-                    {/* Inputs */}
-                    <View style={tw`gap-5`}>
-                        <View>
-                            <Text style={tw`text-gray-500 font-bold mb-2 ml-1`}>Card Holder Name</Text>
-                            <TextInput
-                                placeholder="MD KAYESUR RAHMAN"
-                                placeholderTextColor="#9CA3AF"
-                                value={cardHolder}
-                                onChangeText={setCardHolder}
-                                style={tw`bg-gray-50 border border-gray-100 rounded-2xl h-14 px-5 text-gray-800 font-bold`}
-                            />
-                        </View>
-
-                        <View>
-                            <Text style={tw`text-gray-500 font-bold mb-2 ml-1`}>Card Number</Text>
-                            <View style={tw`relative`}>
-                                <TextInput
-                                    placeholder="0000 0000 0000 0000"
-                                    placeholderTextColor="#9CA3AF"
-                                    keyboardType="number-pad"
-                                    maxLength={16}
-                                    value={cardNumber}
-                                    onChangeText={setCardNumber}
-                                    style={tw`bg-gray-50 border border-gray-100 rounded-2xl h-14 px-5 text-gray-800 font-bold`}
-                                />
-                                <FontAwesome name="credit-card" size={20} color="#10B981" style={tw`absolute right-5 top-4`} />
-                            </View>
-                        </View>
-
-                        <View style={tw`flex-row gap-4`}>
-                            <View style={tw`flex-1`}>
-                                <Text style={tw`text-gray-500 font-bold mb-2 ml-1`}>Expiry Date</Text>
-                                <TextInput
-                                    placeholder="MM/YY"
-                                    placeholderTextColor="#9CA3AF"
-                                    maxLength={5}
-                                    value={expiryDate}
-                                    onChangeText={setExpiryDate}
-                                    style={tw`bg-gray-50 border border-gray-100 rounded-2xl h-14 px-5 text-gray-800 font-bold`}
-                                />
-                            </View>
-                            <View style={tw`flex-1`}>
-                                <Text style={tw`text-gray-500 font-bold mb-2 ml-1`}>CVV</Text>
-                                <TextInput
-                                    placeholder="***"
-                                    placeholderTextColor="#9CA3AF"
-                                    keyboardType="number-pad"
-                                    maxLength={3}
-                                    secureTextEntry
-                                    value={cvv}
-                                    onChangeText={setCvv}
-                                    style={tw`bg-gray-50 border border-gray-100 rounded-2xl h-14 px-5 text-gray-800 font-bold`}
-                                />
-                            </View>
-                        </View>
-                    </View>
+                    {!isReady && !isCreatingIntent && (
+                        <Pressable 
+                            onPress={initializePayment}
+                            style={tw`mt-8 p-4 bg-gray-100 rounded-2xl items-center`}
+                        >
+                            <Text style={tw`text-gray-500 font-bold`}>Retry Initialization</Text>
+                        </Pressable>
+                    )}
                 </ScrollView>
 
                 {/* Bottom Action */}
                 <View style={tw`px-6 py-6 border-t border-gray-50`}>
                     <Pressable
                         onPress={handlePayment}
-                        style={tw`bg-[#10B981] h-16 rounded-2xl items-center justify-center shadow-lg`}
+                        disabled={!isReady || stripeLoading}
+                        style={tw`bg-[#10B981] h-16 rounded-2xl items-center justify-center shadow-lg ${(!isReady || stripeLoading) ? 'opacity-50' : ''}`}
                     >
-                        <Text style={tw`text-white font-bold text-xl`}>Pay Now</Text>
+                        {isCreatingIntent || stripeLoading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text style={tw`text-white font-bold text-xl`}>Confirm Payment</Text>
+                        )}
                     </Pressable>
+                    {!isReady && (isCreatingIntent || stripeLoading) && (
+                        <Text style={tw`text-center text-gray-400 text-xs mt-2`}>Preparing secure payment sheet...</Text>
+                    )}
                 </View>
             </SafeAreaView>
         </View>
