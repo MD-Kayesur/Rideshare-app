@@ -178,7 +178,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <StripeProvider
-        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51SiorkPqBdQz0TrQlJS6y1ZBB2F1cVaLG4MkluHD9yYmrhZqSgFm0MtCOUEvIddodOD3r1ARdWst4ET05a3UZ39d00L09rCux6"}
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51TU295Fj2lVeopQI2MkwnursVMwVbX7sCWTqubQsZ4V2tHGoaR02xqUhdstOfN586C52MXHkEIVSIzvzLWu22lXM00k8RdQaG0"}
       >
         <SafeAreaProvider>
           <RootLayoutNav />

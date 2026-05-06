@@ -94,7 +94,7 @@ export default function AdminNotificationsScreen() {
                             <Pressable 
                                 key={notif._id} 
                                 onPress={() => handleNotificationClick(notif)}
-                                style={tw`rounded-3xl p-5 mb-4 shadow-sm border border-gray-50 ${notif.isRead ? 'bg-white' : 'bg-green-50'}`}
+                                style={tw`rounded-3xl p-5 mb-4 shadow-sm border ${notif.isRead ? 'bg-white border-gray-100' : 'bg-green-50 border-green-200'}`}
                             >
                                 <View style={tw`flex-row items-start`}>
                                     <View style={tw`w-10 h-10 rounded-full ${
@@ -115,13 +115,25 @@ export default function AdminNotificationsScreen() {
                                     </View>
                                     <View style={tw`ml-4 flex-1`}>
                                         <View style={tw`flex-row justify-between items-center mb-1`}>
-                                            <Text style={tw`font-bold text-gray-800 text-base`}>{notif.title}</Text>
-                                            {!notif.isRead && <View style={tw`w-2 h-2 rounded-full bg-[#10B981]`} />}
+                                            <View style={tw`flex-row items-center`}>
+                                                <Text style={tw`font-bold text-gray-800 text-base`}>{notif.title}</Text>
+                                                {!notif.isRead && (
+                                                    <View style={tw`ml-2 bg-[#10B981] px-1.5 py-0.5 rounded-md`}>
+                                                        <Text style={tw`text-white text-[8px] font-bold`}>NEW</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                            <Text style={tw`text-[10px] text-gray-400`}>
+                                                {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </Text>
                                         </View>
                                         <Text style={tw`text-gray-500 text-sm leading-5`}>{notif.message}</Text>
-                                        <Text style={tw`text-[10px] text-gray-400 mt-2`}>
-                                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </Text>
+                                        {notif.isRead && (
+                                            <View style={tw`flex-row items-center mt-2`}>
+                                                <Ionicons name="checkmark-done" size={14} color="#9CA3AF" />
+                                                <Text style={tw`text-[10px] text-gray-400 ml-1`}>Read</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             </Pressable>

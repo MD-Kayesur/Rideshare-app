@@ -6,15 +6,22 @@ import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
 import { usePaymentSheet } from '@stripe/stripe-react-native';
 import { useCreatePaymentIntentMutation } from '../../redux/features/payment/paymentApi';
+import { Platform } from 'react-native';
 
 export default function CheckoutScreen() {
     const { amount, rideId } = useLocalSearchParams();
     const [createPaymentIntent, { isLoading: isCreatingIntent }] = useCreatePaymentIntentMutation();
-    const { initPaymentSheet, presentPaymentSheet, loading: stripeLoading } = usePaymentSheet();
+    
+    // Safely initialize hooks
+    const paymentSheet = Platform.OS !== 'web' ? usePaymentSheet() : { initPaymentSheet: () => {}, presentPaymentSheet: () => {}, loading: false };
+    const { initPaymentSheet, presentPaymentSheet, loading: stripeLoading } = paymentSheet;
+    
     const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-        initializePayment();
+        if (Platform.OS !== 'web') {
+            initializePayment();
+        }
     }, []);
 
     const initializePayment = async () => {
@@ -25,7 +32,7 @@ export default function CheckoutScreen() {
             }).unwrap();
 
             if (res.success && res.data.clientSecret) {
-                const { error } = await initPaymentSheet({
+                const initResult: any = await initPaymentSheet({
                     merchantDisplayName: "Rideshare App",
                     paymentIntentClientSecret: res.data.clientSecret,
                     defaultBillingDetails: {
@@ -34,10 +41,10 @@ export default function CheckoutScreen() {
                     allowsDelayedPaymentMethods: false,
                 });
 
-                if (!error) {
+                if (!initResult?.error) {
                     setIsReady(true);
                 } else {
-                    Alert.alert("Error", error.message);
+                    Alert.alert("Error", initResult.error.message);
                 }
             }
         } catch (error: any) {
@@ -47,10 +54,10 @@ export default function CheckoutScreen() {
     };
 
     const handlePayment = async () => {
-        const { error } = await presentPaymentSheet();
+        const result: any = await presentPaymentSheet();
 
-        if (error) {
-            Alert.alert(`Error code: ${error.code}`, error.message);
+        if (result?.error) {
+            Alert.alert(`Error code: ${result.error.code}`, result.error.message);
         } else {
             Alert.alert(
                 "Payment Successful",
