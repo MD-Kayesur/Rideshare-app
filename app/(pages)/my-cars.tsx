@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, Pressable, ScrollView, Image, ActivityIndicator, Alert, StatusBar, FlatList } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable, ScrollView, Image, ActivityIndicator, Alert, StatusBar, FlatList, Modal, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -9,6 +9,14 @@ import { useGetMyVehiclesQuery, useDeleteVehicleMutation } from "../../redux/fea
 export default function MyCarsScreen() {
     const { data: vehiclesData, isLoading, refetch } = useGetMyVehiclesQuery({});
     const [deleteVehicle] = useDeleteVehicleMutation();
+    const [showTypeModal, setShowTypeModal] = useState(false);
+
+    const vehicleOptions = [
+        { title: 'Car', icon: 'car-outline', type: 'car' },
+        { title: 'Bike', icon: 'bicycle-outline', type: 'bike' },
+        { title: 'Cycle', icon: 'bicycle-outline', type: 'cycle' },
+        { title: 'CNG', icon: 'car-sport-outline', type: 'cng' },
+    ];
 
     const handleDelete = (id: string) => {
         Alert.alert(
@@ -84,12 +92,54 @@ export default function MyCarsScreen() {
                     <Text style={tw`text-xl font-bold text-gray-800 ml-2`}>My Vehicles</Text>
                 </View>
                 <Pressable 
-                    onPress={() => router.push({ pathname: "/(pages)/add-vehicle", params: { type: 'car' } })}
+                    onPress={() => setShowTypeModal(true)}
                     style={tw`bg-[#10B981] p-2 rounded-full`}
                 >
                     <Ionicons name="add" size={24} color="white" />
                 </Pressable>
             </View>
+
+            {/* Selection Modal */}
+            <Modal
+                visible={showTypeModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowTypeModal(false)}
+            >
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => setShowTypeModal(false)}
+                    style={tw`flex-1 bg-black/50 justify-center items-center px-8`}
+                >
+                    <View style={tw`bg-white w-full rounded-3xl p-6`}>
+                        <Text style={tw`text-xl font-bold text-gray-800 mb-6 text-center`}>Select Vehicle Type</Text>
+                        <View style={tw`flex-row flex-wrap justify-between`}>
+                            {vehicleOptions.map((opt) => (
+                                <Pressable
+                                    key={opt.type}
+                                    onPress={() => {
+                                        setShowTypeModal(false);
+                                        router.push({ 
+                                            pathname: "/(pages)/add-vehicle", 
+                                            params: { type: opt.type } 
+                                        });
+                                    }}
+                                    style={tw`w-[47%] bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 items-center`}
+                                >
+                                    <Ionicons name={opt.icon as any} size={32} color="#10B981" style={tw`mb-2`} />
+                                    <Text style={tw`text-base font-bold text-gray-700 text-center`}>{opt.title}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                        <Pressable 
+                            onPress={() => setShowTypeModal(false)}
+                            style={tw`mt-2 py-3 items-center`}
+                        >
+                            <Text style={tw`text-gray-500 font-medium`}>Cancel</Text>
+                        </Pressable>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
 
             {isLoading ? (
                 <View style={tw`flex-1 justify-center items-center`}>
@@ -111,7 +161,7 @@ export default function MyCarsScreen() {
                                 Add your vehicles to start receiving ride requests.
                             </Text>
                             <Pressable 
-                                onPress={() => router.push({ pathname: "/(pages)/add-vehicle", params: { type: 'car' } })}
+                                onPress={() => setShowTypeModal(true)}
                                 style={tw`bg-[#10B981] px-8 py-3 rounded-2xl`}
                             >
                                 <Text style={tw`text-white font-bold`}>Add Your First Car</Text>
