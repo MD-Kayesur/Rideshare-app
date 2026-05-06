@@ -178,15 +178,7 @@ export default function HomeScreen() {
                     </Pressable>
                 </View>
 
-                {/* Rental Button */}
-                <View style={tw`absolute left-4 top-1/2 -mt-24`}>
-                    <Pressable
-                        onPress={() => setFlowState('selecting')}
-                        style={tw`bg-[#065F46] py-4 px-8 rounded-xl shadow-lg`}
-                    >
-                        <Text style={tw`text-white font-bold text-lg`}>Rental</Text>
-                    </Pressable>
-                </View>
+
 
                 {/* Search and Toggle Container - Visible only when NOT selecting */}
                 {flowState === 'none' && (

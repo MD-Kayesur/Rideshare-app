@@ -88,14 +88,31 @@ function RootLayoutNav() {
           const socket = socketService.connect();
           if (user?._id || user?.id) {
             socket.emit('join', user._id || user.id);
+            if (user.role === 'admin') {
+              socket.emit('join', 'admin');
+            }
           }
 
           // Global notification listeners
           socket.on('notification', (data: any) => {
+            const currentUserId = user?._id || user?.id;
+            const senderId = data.metadata?.userId;
+            
+            if (currentUserId && senderId && String(currentUserId) === String(senderId)) {
+              return; // Don't show toast for own messages
+            }
             showToast(data);
           });
 
           socket.on('admin-notification', (data: any) => {
+            if (user?.role !== 'admin') return; 
+            
+            const currentUserId = user?._id || user?.id;
+            const senderId = data.metadata?.userId;
+
+            if (currentUserId && senderId && String(currentUserId) === String(senderId)) {
+              return; // Don't show toast for own messages
+            }
             showToast(data);
           });
         }
@@ -155,12 +172,18 @@ function RootLayoutNav() {
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { StripeProvider } from '@stripe/stripe-react-native';
+
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-        <RootLayoutNav />
-      </SafeAreaProvider>
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51TU295Fj2lVeopQI2MkwnursVMwVbX7sCWTqubQsZ4V2tHGoaR02xqUhdstOfN586C52MXHkEIVSIzvzLWu22lXM00k8RdQaG0"}
+      >
+        <SafeAreaProvider>
+          <RootLayoutNav />
+        </SafeAreaProvider>
+      </StripeProvider>
     </Provider>
   );
 }
