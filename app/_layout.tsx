@@ -172,12 +172,18 @@ function RootLayoutNav() {
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { StripeProvider } from '@stripe/stripe-react-native';
+
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-        <RootLayoutNav />
-      </SafeAreaProvider>
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51SiorkPqBdQz0TrQlJS6y1ZBB2F1cVaLG4MkluHD9yYmrhZqSgFm0MtCOUEvIddodOD3r1ARdWst4ET05a3UZ39d00L09rCux6"}
+      >
+        <SafeAreaProvider>
+          <RootLayoutNav />
+        </SafeAreaProvider>
+      </StripeProvider>
     </Provider>
   );
 }

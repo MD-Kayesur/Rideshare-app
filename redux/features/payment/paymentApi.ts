@@ -4,9 +4,23 @@ export const paymentApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getMyPayments: builder.query({
             query: () => "/payments/my-payments",
-            providesTags: ["Ride"], // Using Ride tag for now as payments are linked to rides
+            providesTags: ["Ride"],
+        }),
+        createPaymentIntent: builder.mutation({
+            query: (data) => ({
+                url: "/payments/create-intent",
+                method: "POST",
+                body: data,
+            }),
+        }),
+        verifyPayment: builder.query({
+            query: (transactionId) => `/payments/verify?transactionId=${transactionId}`,
         }),
     }),
 });
 
-export const { useGetMyPaymentsQuery } = paymentApi;
+export const { 
+    useGetMyPaymentsQuery, 
+    useCreatePaymentIntentMutation,
+    useVerifyPaymentQuery 
+} = paymentApi;
