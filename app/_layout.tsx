@@ -96,17 +96,24 @@ function RootLayoutNav() {
           // Global notification listeners
           socket.on('notification', (data: any) => {
             const currentUserId = user?._id || user?.id;
-            if (data.metadata?.userId !== currentUserId) {
-              showToast(data);
+            const senderId = data.metadata?.userId;
+            
+            if (currentUserId && senderId && String(currentUserId) === String(senderId)) {
+              return; // Don't show toast for own messages
             }
+            showToast(data);
           });
 
           socket.on('admin-notification', (data: any) => {
-            if (user?.role !== 'admin') return; // Security: only admins should see these
+            if (user?.role !== 'admin') return; 
+            
             const currentUserId = user?._id || user?.id;
-            if (data.metadata?.userId !== currentUserId) {
-              showToast(data);
+            const senderId = data.metadata?.userId;
+
+            if (currentUserId && senderId && String(currentUserId) === String(senderId)) {
+              return; // Don't show toast for own messages
             }
+            showToast(data);
           });
         }
       } catch (error) {
