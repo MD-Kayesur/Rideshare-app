@@ -43,6 +43,8 @@ export default function AdminNotificationsScreen() {
                         userName: "User", // We could fetch actual name if needed
                     }
                 });
+            } else if (notif.type === 'chat' || notif.type === 'message') {
+                router.push('/(pages)/chat_history');
             } else if (notif.type === 'driver_request') {
                 // Redirect to a details page (placeholder for now)
                 Alert.alert("Detail View", "This would redirect to driver verification details.");
@@ -124,7 +126,7 @@ export default function AdminNotificationsScreen() {
                             <Text style={tw`text-gray-400 font-medium mt-4 text-lg`}>No notifications yet</Text>
                         </View>
                     ) : (
-                        notifications?.data?.map((notif: any) => (
+                        notifications?.data?.map((notif: any, index: number) => (
                             <View key={notif._id} style={tw`mb-4`}>
                                 <Pressable 
                                     onPress={() => handleNotificationClick(notif)}
@@ -150,7 +152,7 @@ export default function AdminNotificationsScreen() {
                                         <View style={tw`ml-2 flex-1`}>
                                             <View style={tw`flex-row justify-between items-center mb-1`}>
                                                 <View style={tw`flex-row items-center`}>
-                                                    <Text style={tw`font-bold text-gray-800 text-base`}>{notif.title.slice(0,18)}....</Text>
+                                                    <Text style={tw`font-bold text-gray-800 text-base`}>{index + 1}. {notif.title.slice(0,18)}....</Text>
                                                     {!notif.isRead && (
                                                         <View style={tw`ml-2 bg-[#10B981] px-1.5 py-0.5 rounded-md`}>
                                                             <Text style={tw`text-white text-[8px] font-bold`}>NEW</Text>
