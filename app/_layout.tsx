@@ -7,6 +7,7 @@ import { useAppDispatch } from '../redux/hooks';
 import { getItem } from '../redux/hooks/storage';
 import { setUser } from '../redux/features/auth/authSlice';
 import { RideRequestOverlay } from '../components/RideRequestOverlay';
+import { baseApi } from '../redux/hooks/baseApi';
 
 // Only import CSS on web - NativeWind handles mobile automatically via Metro
 if (Platform.OS === 'web') {
@@ -98,6 +99,13 @@ function RootLayoutNav() {
             const currentUserId = user?._id || user?.id;
             const senderId = data.metadata?.userId;
             
+            // Invalidate relevant tags to trigger real-time UI updates on all simulators
+            if (data.type === 'payment' || data.type === 'ride') {
+              dispatch(baseApi.util.invalidateTags(['Ride', 'Notification', 'User']));
+            } else if (data.type === 'chat') {
+              dispatch(baseApi.util.invalidateTags(['Message', 'Chat']));
+            }
+
             if (currentUserId && senderId && String(currentUserId) === String(senderId)) {
               return; // Don't show toast for own messages
             }
@@ -105,6 +113,9 @@ function RootLayoutNav() {
           });
 
           socket.on('admin-notification', (data: any) => {
+            // Admin always refetches to stay updated
+            dispatch(baseApi.util.invalidateTags(['Ride', 'Notification', 'Complaint', 'User']));
+
             if (user?.role !== 'admin') return; 
             
             const currentUserId = user?._id || user?.id;
