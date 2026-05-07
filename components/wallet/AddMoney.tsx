@@ -36,7 +36,7 @@ export const AddMoney: React.FC<AddMoneyProps> = ({
                     <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>Amount</Text>
                 </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-6 pt-6 pb-32`}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={tw`px-6 pt-6 pb-10`}>
                     <View style={tw`bg-white border border-gray-100 rounded-2xl px-4 py-5 mb-4 shadow-sm`}>
                         <TextInput
                             placeholder="Enter Amount"
@@ -74,16 +74,16 @@ export const AddMoney: React.FC<AddMoneyProps> = ({
                             </View>
                         </Pressable>
                     ))}
-                </ScrollView>
 
-                <View style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-6 border-t border-gray-100 pb-20`}>
-                    <Pressable
-                        onPress={onConfirm}
-                        style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg`}
-                    >
-                        <Text style={tw`text-white font-bold text-xl`}>Confirm</Text>
-                    </Pressable>
-                </View>
+                    <View style={tw`mt-5 mb-10`}>
+                        <Pressable
+                            onPress={onConfirm}
+                            style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg`}
+                        >
+                            <Text style={tw`text-white font-bold text-xl`}>Confirm</Text>
+                        </Pressable>
+                    </View>
+                </ScrollView>
             </SafeAreaView>
         </View>
     );
