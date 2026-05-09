@@ -1,19 +1,42 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView, StatusBar, Animated } from "react-native";
+import { View, Text, Pressable, ScrollView, StatusBar, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useGetMyNotificationsQuery } from "../../redux/features/notification/notificationApi";
 import tw from 'twrnc';
 
 export default function NotificationScreen() {
-    const notifications = [
-        { id: '1', title: 'Payment confirm', description: 'Lorem ipsum dolor sit amet consectetur. Ultrici es tincidunt eleifend vitae', time: '15 min ago.', isUnread: true, section: 'Today' },
-        { id: '2', title: 'Payment confirm', description: 'Lorem ipsum dolor sit amet consectetur. Ultrici es tincidunt eleifend vitae', time: '25 min ago.', isUnread: false, section: 'Today' },
-        { id: '3', title: 'Payment confirm', description: 'Lorem ipsum dolor sit amet consectetur. Ultrici es tincidunt eleifend vitae', time: '15 min ago.', isUnread: true, section: 'Yesterday' },
-        { id: '4', title: 'Payment confirm', description: 'Lorem ipsum dolor sit amet consectetur. Ultrici es tincidunt eleifend vitae', time: '25 min ago.', isUnread: false, section: 'Yesterday' },
-        { id: '5', title: 'Payment confirm', description: 'Lorem ipsum dolor sit amet consectetur. Ultrici es tincidunt eleifend vitae', time: '25 min ago.', isUnread: false, section: 'Yesterday' },
-        { id: '6', title: 'Payment confirm', description: 'Lorem ipsum dolor sit amet consectetur. Ultrici es tincidunt eleifend vitae', time: '15 min ago.', isUnread: true, section: 'Yesterday' },
-    ];
+    const { data: notificationData, isLoading } = useGetMyNotificationsQuery();
+
+    const timeAgo = (date: string) => {
+        const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " min ago";
+        return Math.floor(seconds) + " seconds ago";
+    };
+
+    // Filter for payment notifications only as requested
+    const filteredNotifications = notificationData?.data?.filter((n: any) => n.type === 'payment') || [];
+
+    const isToday = (date: string) => {
+        const d = new Date(date);
+        const today = new Date();
+        return d.getDate() === today.getDate() &&
+               d.getMonth() === today.getMonth() &&
+               d.getFullYear() === today.getFullYear();
+    };
+
+    const todayNotifications = filteredNotifications.filter((n: any) => isToday(n.createdAt));
+    const earlierNotifications = filteredNotifications.filter((n: any) => !isToday(n.createdAt));
 
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
@@ -30,26 +53,48 @@ export default function NotificationScreen() {
                 </View>
             </View>
 
-            <ScrollView style={tw`flex-1 px-8`} showsVerticalScrollIndicator={false}>
-                <Text style={tw`text-lg font-bold text-gray-800 mb-4`}>Today</Text>
-                {notifications.filter(n => n.section === 'Today').map(item => (
-                    <View key={item.id} style={[tw`p-4 rounded-2xl mb-3`, item.isUnread ? tw`bg-[#E1F3ED]` : tw`bg-white border border-gray-100`]}>
-                        <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{item.title}</Text>
-                        <Text style={tw`text-sm text-gray-400 mb-2 leading-5`}>{item.description}</Text>
-                        <Text style={tw`text-xs text-gray-400`}>{item.time}</Text>
-                    </View>
-                ))}
+            {isLoading ? (
+                <View style={tw`flex-1 items-center justify-center`}>
+                    <ActivityIndicator size="large" color="#10B981" />
+                </View>
+            ) : (
+                <ScrollView style={tw`flex-1 px-8`} showsVerticalScrollIndicator={false}>
+                    {todayNotifications.length > 0 && (
+                        <>
+                            <Text style={tw`text-lg font-bold text-gray-800 mb-4`}>Today</Text>
+                            {todayNotifications.map((item: any) => (
+                                <View key={item._id} style={[tw`p-4 rounded-2xl mb-3`, !item.isRead ? tw`bg-[#E1F3ED]` : tw`bg-white border border-gray-100`]}>
+                                    <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{item.title}</Text>
+                                    <Text style={tw`text-sm text-gray-400 mb-2 leading-5`}>{item.message}</Text>
+                                    <Text style={tw`text-xs text-gray-400`}>{timeAgo(item.createdAt)}</Text>
+                                </View>
+                            ))}
+                        </>
+                    )}
 
-                <Text style={tw`text-lg font-bold text-gray-800 mt-6 mb-4`}>Yesterday</Text>
-                {notifications.filter(n => n.section === 'Yesterday').map(item => (
-                    <View key={item.id} style={[tw`p-4 rounded-2xl mb-3`, item.isUnread ? tw`bg-[#E1F3ED]` : tw`bg-white border border-gray-100`]}>
-                        <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{item.title}</Text>
-                        <Text style={tw`text-sm text-gray-400 mb-2 leading-5`}>{item.description}</Text>
-                        <Text style={tw`text-xs text-gray-400`}>{item.time}</Text>
-                    </View>
-                ))}
-                <View style={tw`h-10`} />
-            </ScrollView>
+                    {earlierNotifications.length > 0 && (
+                        <>
+                            <Text style={tw`text-lg font-bold text-gray-800 mt-6 mb-4`}>Earlier</Text>
+                            {earlierNotifications.map((item: any) => (
+                                <View key={item._id} style={[tw`p-4 rounded-2xl mb-3`, !item.isRead ? tw`bg-[#E1F3ED]` : tw`bg-white border border-gray-100`]}>
+                                    <Text style={tw`text-lg font-bold text-gray-800 mb-1`}>{item.title}</Text>
+                                    <Text style={tw`text-sm text-gray-400 mb-2 leading-5`}>{item.message}</Text>
+                                    <Text style={tw`text-xs text-gray-400`}>{timeAgo(item.createdAt)}</Text>
+                                </View>
+                            ))}
+                        </>
+                    )}
+
+                    {filteredNotifications.length === 0 && (
+                        <View style={tw`mt-20 items-center`}>
+                            <Ionicons name="notifications-off-outline" size={64} color="#D1D5DB" />
+                            <Text style={tw`mt-4 text-gray-400 text-lg font-medium`}>No payment notifications yet</Text>
+                        </View>
+                    )}
+                    
+                    <View style={tw`h-10`} />
+                </ScrollView>
+            )}
         </SafeAreaView>
     );
 }

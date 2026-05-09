@@ -2,15 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
+import { socketService } from '../../utils/socket';
+import { useAppSelector } from '../../redux/hooks';
 
 export default function CallScreen() {
+    const { userId, userName, userAvatar } = useLocalSearchParams();
+    const currentUser = useAppSelector((state) => state.auth.user);
     const [status, setStatus] = useState<'calling' | 'ongoing'>('calling');
     const [seconds, setSeconds] = useState(0);
 
     useEffect(() => {
+        // Notify the receiver
+        if (userId) {
+            socketService.emit('call_user', {
+                userToCall: userId,
+                from: currentUser?._id,
+                name: currentUser?.name || 'Rider',
+                signalData: {} // For real WebRTC this would be the offer
+            });
+        }
+
         const timer = setTimeout(() => {
             setStatus('ongoing');
         }, 3000);
@@ -52,14 +66,14 @@ export default function CallScreen() {
                     <View style={tw`w-40 h-40 rounded-full border-2 border-[#10B981] p-1 mb-8 shadow-sm`}>
                         <View style={tw`w-full h-full rounded-full overflow-hidden`}>
                             <Image
-                                source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=Sergio' }}
+                                source={{ uri: (userAvatar as string) || 'https://avatar.iran.liara.run/public/boy?username=Sergio' }}
                                 style={tw`w-full h-full`}
                                 resizeMode="cover"
                             />
                         </View>
                     </View>
 
-                    <Text style={tw`text-4xl font-bold text-gray-800 mb-2`}>Sergio Ramasis</Text>
+                    <Text style={tw`text-4xl font-bold text-gray-800 mb-2`}>{userName || 'Sergio Ramasis'}</Text>
                     <Text style={tw`text-xl text-gray-400 font-medium`}>
                         {status === 'calling' ? 'Calling....' : formatTime(seconds)}
                     </Text>

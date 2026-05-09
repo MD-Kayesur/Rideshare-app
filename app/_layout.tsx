@@ -7,6 +7,7 @@ import { useAppDispatch } from '../redux/hooks';
 import { getItem } from '../redux/hooks/storage';
 import { setUser } from '../redux/features/auth/authSlice';
 import { RideRequestOverlay } from '../components/RideRequestOverlay';
+import { baseApi } from '../redux/hooks/baseApi';
 
 // Only import CSS on web - NativeWind handles mobile automatically via Metro
 if (Platform.OS === 'web') {
@@ -98,13 +99,55 @@ function RootLayoutNav() {
             const currentUserId = user?._id || user?.id;
             const senderId = data.metadata?.userId;
             
+            // Invalidate relevant tags to trigger real-time UI updates on all simulators
+            if (data.type === 'payment' || data.type === 'ride') {
+              dispatch(baseApi.util.invalidateTags(['Ride', 'Notification', 'User']));
+            } else if (data.type === 'chat') {
+              dispatch(baseApi.util.invalidateTags(['Message', 'Chat']));
+            }
+
             if (currentUserId && senderId && String(currentUserId) === String(senderId)) {
               return; // Don't show toast for own messages
             }
             showToast(data);
           });
 
+          socket.on('call_user', (data: any) => {
+            Alert.alert(
+              "Incoming Call",
+              `${data.name} is calling you...`,
+              [
+                { 
+                  text: "Decline", 
+                  style: "cancel",
+                  onPress: () => socket.emit('end_call', { to: data.from })
+                },
+                { 
+                  text: "Answer", 
+                  onPress: () => {
+                    router.push({
+                      pathname: '/(pages)/call',
+                      params: {
+                        userId: data.from,
+                        userName: data.name,
+                        userAvatar: data.avatar || 'https://avatar.iran.liara.run/public/boy?username=User'
+                      }
+                    });
+                  }
+                }
+              ]
+            );
+          });
+
+          socket.on('driver_status_changed', () => {
+            // Re-fetch nearby drivers in real-time when any driver goes online/offline
+            dispatch(baseApi.util.invalidateTags(['User']));
+          });
+
           socket.on('admin-notification', (data: any) => {
+            // Admin always refetches to stay updated
+            dispatch(baseApi.util.invalidateTags(['Ride', 'Notification', 'Complaint', 'User']));
+
             if (user?.role !== 'admin') return; 
             
             const currentUserId = user?._id || user?.id;
