@@ -148,6 +148,14 @@ export default function TrackRideScreen() {
                 {/* Footer Buttons */}
                 <View style={tw`flex-row gap-4 mb-4`}>
                     <Pressable 
+                        onPress={() => router.push({
+                            pathname: '/(pages)/call',
+                            params: {
+                                userId: ride?.driver?._id,
+                                userName: ride?.driver?.name || "Sergio Ramasis",
+                                userAvatar: ride?.driver?.avatar
+                            }
+                        })}
                         style={tw`flex-1 h-14 border border-gray-200 rounded-2xl items-center justify-center`}
                     >
                         <Text style={tw`text-[#10B981] font-bold text-lg`}>Call</Text>

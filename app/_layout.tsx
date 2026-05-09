@@ -112,6 +112,33 @@ function RootLayoutNav() {
             showToast(data);
           });
 
+          socket.on('call_user', (data: any) => {
+            Alert.alert(
+              "Incoming Call",
+              `${data.name} is calling you...`,
+              [
+                { 
+                  text: "Decline", 
+                  style: "cancel",
+                  onPress: () => socket.emit('end_call', { to: data.from })
+                },
+                { 
+                  text: "Answer", 
+                  onPress: () => {
+                    router.push({
+                      pathname: '/(pages)/call',
+                      params: {
+                        userId: data.from,
+                        userName: data.name,
+                        userAvatar: data.avatar || 'https://avatar.iran.liara.run/public/boy?username=User'
+                      }
+                    });
+                  }
+                }
+              ]
+            );
+          });
+
           socket.on('admin-notification', (data: any) => {
             // Admin always refetches to stay updated
             dispatch(baseApi.util.invalidateTags(['Ride', 'Notification', 'Complaint', 'User']));
