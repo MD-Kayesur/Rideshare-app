@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Image, StyleSheet, StatusBar, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -18,6 +18,21 @@ export default function TrackRideScreen() {
         pollingInterval: 5000,
     });
     const ride = rideResponse?.data || rideResponse;
+    const [timeLeft, setTimeLeft] = useState(215); // 3:35 in seconds
+
+    useEffect(() => {
+        if (timeLeft <= 0) return;
+        const timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [timeLeft]);
+
+    const formatTimeLeft = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     const [region] = useState({
         latitude: 23.8103,
@@ -87,7 +102,7 @@ export default function TrackRideScreen() {
             <View style={tw`bg-white rounded-t-[40px] shadow-2xl p-6 pb-10`}>
                 <View style={tw`w-16 h-1.5 bg-gray-200 rounded-full self-center mb-6`} />
                 
-                <Text style={tw`text-lg font-bold text-gray-700 mb-6`}>Your driver is coming in 3:35</Text>
+                <Text style={tw`text-lg font-bold text-gray-700 mb-6`}>Your driver is coming in {formatTimeLeft(timeLeft)}</Text>
                 
                 <View style={tw`h-[1px] bg-gray-100 mb-6`} />
 

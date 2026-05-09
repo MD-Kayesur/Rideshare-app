@@ -66,10 +66,7 @@ export default function CheckoutScreen() {
                     { 
                         text: "OK", 
                         onPress: () => {
-                            router.replace({
-                                pathname: '/(pages)/request-rent',
-                                params: { rideId }
-                            });
+                            router.replace('/(tabs)');
                         }
                     }
                 ]
