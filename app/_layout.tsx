@@ -139,6 +139,11 @@ function RootLayoutNav() {
             );
           });
 
+          socket.on('driver_status_changed', () => {
+            // Re-fetch nearby drivers in real-time when any driver goes online/offline
+            dispatch(baseApi.util.invalidateTags(['User']));
+          });
+
           socket.on('admin-notification', (data: any) => {
             // Admin always refetches to stay updated
             dispatch(baseApi.util.invalidateTags(['Ride', 'Notification', 'Complaint', 'User']));
