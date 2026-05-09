@@ -5,13 +5,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import tw from 'twrnc';
-import { useGetSingleRideQuery } from '../../redux/features/ride/rideApi';
+import { useGetSingleRideQuery, useCancelRideMutation } from '../../redux/features/ride/rideApi';
+import { Alert } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
 export default function TrackRideScreen() {
     const { rideId } = useLocalSearchParams();
     const mapRef = useRef<MapView>(null);
+    const [cancelRide, { isLoading: isCancelling }] = useCancelRideMutation();
     
     const { data: rideResponse } = useGetSingleRideQuery(rideId as string, {
         skip: !rideId,
@@ -174,9 +176,38 @@ export default function TrackRideScreen() {
                             rideId: ride?._id || rideId
                         }
                     })}
-                    style={tw`w-full h-16 bg-black rounded-2xl items-center justify-center shadow-lg`}
+                    style={tw`w-full h-16 bg-black rounded-2xl items-center justify-center shadow-lg mb-4`}
                 >
                     <Text style={tw`text-white font-bold text-xl`}>Proceed to Payment</Text>
+                </Pressable>
+
+                {/* Cancel Ride Button */}
+                <Pressable 
+                    onPress={() => {
+                        Alert.alert(
+                            "Cancel Ride",
+                            "Are you sure you want to cancel this ride?",
+                            [
+                                { text: "No", style: "cancel" },
+                                { 
+                                    text: "Yes, Cancel", 
+                                    style: "destructive",
+                                    onPress: async () => {
+                                        try {
+                                            await cancelRide(rideId).unwrap();
+                                            router.replace('/(tabs)');
+                                        } catch (error) {
+                                            Alert.alert("Error", "Failed to cancel ride");
+                                        }
+                                    }
+                                }
+                            ]
+                        );
+                    }}
+                    disabled={isCancelling}
+                    style={tw`w-full h-14 bg-white border border-red-100 rounded-2xl items-center justify-center`}
+                >
+                    <Text style={tw`text-red-500 font-bold text-lg`}>Cancel Ride</Text>
                 </Pressable>
             </View>
         </View>

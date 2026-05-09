@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
 import { usePaymentSheet } from '@stripe/stripe-react-native';
-import { useCreatePaymentIntentMutation } from '../../redux/features/payment/paymentApi';
+import { useCreatePaymentIntentMutation, paymentApi } from '../../redux/features/payment/paymentApi';
 import { Platform } from 'react-native';
 
 export default function CheckoutScreen() {
