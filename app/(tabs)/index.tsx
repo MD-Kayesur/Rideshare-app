@@ -96,26 +96,38 @@ export default function HomeScreen() {
     const [recentPlaces, setRecentPlaces] = useState<any[]>([]);
     const [filteredPlaces, setFilteredPlaces] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
     const fetchNearbyPlaces = async (lat: number, lon: number) => {
         try {
             // Fetch real nearby points of interest using Nominatim
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=cafe,restaurant,store&lat=${lat}&lon=${lon}&addressdetails=1&limit=6`);
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=cafe,restaurant,store&lat=${lat}&lon=${lon}&addressdetails=1&limit=6`,
+                {
+                    headers: {
+                        'User-Agent': 'RideshareApp/1.0',
+                    }
+                }
+            );
             const data = await response.json();
             
-            const places = data.map((item: any, index: number) => ({
-                id: item.place_id.toString(),
-                name: item.display_name.split(',')[0],
-                address: item.display_name,
-                distance: `${(index + 1) * 0.5}km`, // Mocked distance for UI
-                coordinate: {
-                    latitude: parseFloat(item.lat),
-                    longitude: parseFloat(item.lon)
-                }
-            }));
-            
-            setRecentPlaces(places);
-            setFilteredPlaces(places);
+            if (Array.isArray(data)) {
+                const places = data.map((item: any, index: number) => ({
+                    id: item.place_id.toString(),
+                    name: item.display_name.split(',')[0],
+                    address: item.display_name,
+                    distance: `${(index + 1) * 0.5}km`, // Mocked distance for UI
+                    coordinate: {
+                        latitude: parseFloat(item.lat),
+                        longitude: parseFloat(item.lon)
+                    }
+                }));
+                
+                setRecentPlaces(places);
+                setFilteredPlaces(places);
+            } else {
+                console.log("Nearby places response is not an array:", data);
+            }
         } catch (error) {
             console.log("Error fetching nearby places:", error);
         }
@@ -130,32 +142,67 @@ export default function HomeScreen() {
     const handleSearch = async (text: string) => {
         setLocations(l => ({ ...l, to: text }));
         
+        if (searchTimeout.current) {
+            clearTimeout(searchTimeout.current);
+        }
+
         if (text.length > 2) {
             setIsSearching(true);
-            try {
-                // Using OpenStreetMap Nominatim API for free real-world suggestions
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&addressdetails=1&limit=5`);
-                const data = await response.json();
-                
-                const suggestions = data.map((item: any) => ({
-                    id: item.place_id.toString(),
-                    name: item.display_name.split(',')[0],
-                    address: item.display_name,
-                    distance: 'Search Result',
-                    coordinate: {
-                        latitude: parseFloat(item.lat),
-                        longitude: parseFloat(item.lon)
+            
+            searchTimeout.current = setTimeout(async () => {
+                try {
+                    // Try Photon API first (usually more lenient with rate limits for this use case)
+                    let response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=5`);
+                    let data = await response.json();
+                    
+                    if (data && data.features) {
+                        const suggestions = data.features.map((feature: any) => ({
+                            id: feature.properties.osm_id?.toString() || Math.random().toString(),
+                            name: feature.properties.name || feature.properties.city || 'Unknown',
+                            address: [
+                                feature.properties.name,
+                                feature.properties.street,
+                                feature.properties.city,
+                                feature.properties.country
+                            ].filter(Boolean).join(', '),
+                            distance: 'Search Result',
+                            coordinate: {
+                                latitude: feature.geometry.coordinates[1],
+                                longitude: feature.geometry.coordinates[0]
+                            }
+                        }));
+                        setFilteredPlaces(suggestions);
+                    } else {
+                        // Fallback to Nominatim if Photon fails
+                        const nomResponse = await fetch(
+                            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&addressdetails=1&limit=5`,
+                            { headers: { 'User-Agent': 'Mozilla/5.0 (RideshareApp/1.0)' } }
+                        );
+                        const nomData = await nomResponse.json();
+                        
+                        if (Array.isArray(nomData)) {
+                            const suggestions = nomData.map((item: any) => ({
+                                id: item.place_id.toString(),
+                                name: item.display_name.split(',')[0],
+                                address: item.display_name,
+                                distance: 'Search Result',
+                                coordinate: {
+                                    latitude: parseFloat(item.lat),
+                                    longitude: parseFloat(item.lon)
+                                }
+                            }));
+                            setFilteredPlaces(suggestions);
+                        }
                     }
-                }));
-                
-                setFilteredPlaces(suggestions);
-            } catch (error) {
-                console.log("Search error:", error);
-            } finally {
-                setIsSearching(false);
-            }
+                } catch (error) {
+                    console.log("Search error:", error);
+                } finally {
+                    setIsSearching(false);
+                }
+            }, 500); // 500ms debounce
         } else if (text.length === 0) {
             setFilteredPlaces(recentPlaces);
+            setIsSearching(false);
         }
     };
 
@@ -214,6 +261,12 @@ export default function HomeScreen() {
                                     </Text>
                                     {isSearching && <ActivityIndicator size="small" color="#10B981" />}
                                 </View>
+                                {filteredPlaces.length === 0 && !isSearching && locations.to.length > 2 && (
+                                    <View style={tw`items-center py-10`}>
+                                        <Ionicons name="search-outline" size={48} color="#D1D5DB" />
+                                        <Text style={tw`text-gray-400 mt-4 text-lg font-medium`}>No results found for "{locations.to}"</Text>
+                                    </View>
+                                )}
                                 {filteredPlaces.map(place => (
                                     <Pressable
                                         key={place.id}
