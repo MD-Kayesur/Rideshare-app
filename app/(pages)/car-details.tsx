@@ -6,7 +6,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGetMyDriverProfileQuery } from '../../redux/features/driver/driverApi';
 import tw from 'twrnc';
 export default function CarDetailsScreen() {
-    const { carId, name, transportType, isMyCar, image, vehicleNumber, fuel, seats, isAC } = useLocalSearchParams();
+    const { carId, name, transportType, isMyCar, image, vehicleNumber, fuel, seats, isAC, driverId, driverName, driverAvatar } = useLocalSearchParams();
     const { data: myProfile } = useGetMyDriverProfileQuery({}, { skip: !isMyCar });
     const currentCategory = (transportType as string) || 'Car';
     
@@ -154,7 +154,10 @@ export default function CarDetailsScreen() {
                             pathname: '/(pages)/request-rent',
                             params: { 
                                 name: vehicle.name,
-                                transportType: currentCategory
+                                transportType: currentCategory,
+                                driverId: driverId,
+                                driverName: driverName,
+                                driverAvatar: driverAvatar
                             }
                         })}
                         style={tw`flex-1 bg-[#10B981] py-4 rounded-xl items-center shadow-md`}

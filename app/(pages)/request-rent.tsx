@@ -19,7 +19,7 @@ const paymentMethods = [
 ];
 
 export default function RequestRentScreen() {
-    const { name, rideId: initialRideId, transportType } = useLocalSearchParams();
+    const { name, rideId: initialRideId, transportType, driverId, driverName, driverAvatar } = useLocalSearchParams();
     const user = useAppSelector(state => state.auth.user);
     const [rideId, setRideId] = useState<string | null>((initialRideId as string) || null);
     
@@ -138,13 +138,19 @@ export default function RequestRentScreen() {
                 fare: 220,
                 distance: 1.1,
                 duration: 10,
-                rideType: (transportType as string)?.toLowerCase() === 'taxi' ? 'cng' : carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
+                rideType: (transportType as string)?.toLowerCase() === 'taxi' ? 'cng' : carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car',
+                driver: driverId
             };
 
             const res = await createRide(rideData).unwrap();
             if (res.success) {
                 setRideId(res.data?._id);
-                setModalStep('requesting');
+                // If we already have a driver, go straight to success modal
+                if (driverId) {
+                    setModalStep('booking_placed');
+                } else {
+                    setModalStep('requesting');
+                }
             }
         } catch (error: any) {
             console.error('Ride creation error:', error);
