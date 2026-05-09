@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import tw from 'twrnc';
 import { socketService } from '../../utils/socket';
 import { useAppSelector } from '../../redux/hooks';
 
