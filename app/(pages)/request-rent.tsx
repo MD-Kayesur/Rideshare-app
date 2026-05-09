@@ -414,12 +414,12 @@ export default function RequestRentScreen() {
                             </Pressable>
 
                             {/* Modal Header Icon */}
-                            <View style={tw`items-center mt-4 mb-6`}>
+                            {/* <View style={tw`items-center mt-4 mb-6`}>
                                 <View style={tw`w-24 h-24 items-center justify-center`}>
                                     <MaterialCommunityIcons name="decagram" size={100} color="#E6F7F1" style={tw`absolute`} />
                                     <Ionicons name="checkmark" size={44} color="#10B981" style={tw`z-10`} />
                                 </View>
-                            </View>
+                            </View> */}
 
                             {modalStep === 'requesting' && (
                                 <View style={tw`items-center py-4`}>
