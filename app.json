@@ -16,14 +16,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.starter.app"
+      "bundleIdentifier": "com.mdkayesur.rideshare"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/image.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.starter.app",
+      "package": "com.mdkayesur.rideshare",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"

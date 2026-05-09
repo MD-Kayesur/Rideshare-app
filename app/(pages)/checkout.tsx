@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
 import { usePaymentSheet } from '@stripe/stripe-react-native';
-import { useCreatePaymentIntentMutation } from '../../redux/features/payment/paymentApi';
+import { useCreatePaymentIntentMutation, paymentApi } from '../../redux/features/payment/paymentApi';
 import { Platform } from 'react-native';
 
 export default function CheckoutScreen() {
@@ -16,7 +16,9 @@ export default function CheckoutScreen() {
     const paymentSheet = Platform.OS !== 'web' ? usePaymentSheet() : { initPaymentSheet: () => {}, presentPaymentSheet: () => {}, loading: false };
     const { initPaymentSheet, presentPaymentSheet, loading: stripeLoading } = paymentSheet;
     
+    const [transactionId, setTransactionId] = useState<string | null>(null);
     const [isReady, setIsReady] = useState(false);
+    const [verifyPayment] = paymentApi.useLazyVerifyPaymentQuery();
 
     useEffect(() => {
         if (Platform.OS !== 'web') {
@@ -32,6 +34,7 @@ export default function CheckoutScreen() {
             }).unwrap();
 
             if (res.success && res.data.clientSecret) {
+                setTransactionId(res.data.transactionId);
                 const initResult: any = await initPaymentSheet({
                     merchantDisplayName: "Rideshare App",
                     paymentIntentClientSecret: res.data.clientSecret,
@@ -59,6 +62,11 @@ export default function CheckoutScreen() {
         if (result?.error) {
             Alert.alert(`Error code: ${result.error.code}`, result.error.message);
         } else {
+            // Verify with backend to trigger notifications
+            if (transactionId) {
+                await verifyPayment(transactionId).unwrap();
+            }
+
             Alert.alert(
                 "Payment Successful",
                 "Your ride has been paid successfully!",
@@ -66,10 +74,7 @@ export default function CheckoutScreen() {
                     { 
                         text: "OK", 
                         onPress: () => {
-                            router.replace({
-                                pathname: '/(pages)/request-rent',
-                                params: { rideId }
-                            });
+                            router.replace('/(tabs)');
                         }
                     }
                 ]

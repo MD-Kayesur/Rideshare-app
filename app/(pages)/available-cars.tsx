@@ -31,7 +31,9 @@ export default function AvailableCarsScreen() {
         time: '3mins away',
         image: d.vehicleImage ? { uri: d.vehicleImage } : { uri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000&auto=format&fit=crop' },
         isReal: true,
-        userId: d.user?._id
+        userId: d.user?._id,
+        driverName: d.user?.name,
+        driverAvatar: d.user?.avatar
     })) || [];
 
     // Show only real drivers from the database
@@ -89,7 +91,9 @@ export default function AvailableCarsScreen() {
                                         carId: vehicle.id, 
                                         name: vehicle.name, 
                                         transportType: currentTransportType,
-                                        driverId: vehicle.isReal ? vehicle.userId : undefined,
+                                        driverId: vehicle.userId,
+                                        driverName: vehicle.driverName,
+                                        driverAvatar: vehicle.driverAvatar,
                                         image: typeof vehicle.image === 'string' ? vehicle.image : vehicle.image?.uri,
                                         vehicleNumber: vehicle.vehicleNumber,
                                         fuel: vehicle.fuel,
