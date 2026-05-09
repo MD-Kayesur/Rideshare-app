@@ -16,7 +16,9 @@ export default function CheckoutScreen() {
     const paymentSheet = Platform.OS !== 'web' ? usePaymentSheet() : { initPaymentSheet: () => {}, presentPaymentSheet: () => {}, loading: false };
     const { initPaymentSheet, presentPaymentSheet, loading: stripeLoading } = paymentSheet;
     
+    const [transactionId, setTransactionId] = useState<string | null>(null);
     const [isReady, setIsReady] = useState(false);
+    const [verifyPayment] = paymentApi.useLazyVerifyPaymentQuery();
 
     useEffect(() => {
         if (Platform.OS !== 'web') {
@@ -32,6 +34,7 @@ export default function CheckoutScreen() {
             }).unwrap();
 
             if (res.success && res.data.clientSecret) {
+                setTransactionId(res.data.transactionId);
                 const initResult: any = await initPaymentSheet({
                     merchantDisplayName: "Rideshare App",
                     paymentIntentClientSecret: res.data.clientSecret,
@@ -59,6 +62,11 @@ export default function CheckoutScreen() {
         if (result?.error) {
             Alert.alert(`Error code: ${result.error.code}`, result.error.message);
         } else {
+            // Verify with backend to trigger notifications
+            if (transactionId) {
+                await verifyPayment(transactionId).unwrap();
+            }
+
             Alert.alert(
                 "Payment Successful",
                 "Your ride has been paid successfully!",
