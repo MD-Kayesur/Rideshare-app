@@ -31,7 +31,7 @@ export default function RequestRentScreen() {
 
     const [selectedPayment, setSelectedPayment] = useState('1');
     const [step, setStep] = useState(0); 
-    const [modalStep, setModalStep] = useState<null | 'success' | 'feedback' | 'final' | 'requesting'>(null);
+    const [modalStep, setModalStep] = useState<null | 'success' | 'feedback' | 'final' | 'requesting' | 'booking_placed'>(null);
     const [selectedTip, setSelectedTip] = useState('$2');
     const [rating, setRating] = useState(5);
     const [feedback, setFeedback] = useState('');
@@ -56,7 +56,9 @@ export default function RequestRentScreen() {
 
     useEffect(() => {
         if (rideId) {
-            socketService.on('ride-accepted', () => refetchRide());
+            socketService.on('ride-accepted', () => {
+                refetchRide();
+            });
             socketService.on('ride-started', () => refetchRide());
             socketService.on('ride-completed', () => {
                 refetchRide();
@@ -74,6 +76,12 @@ export default function RequestRentScreen() {
             socketService.off('ride-cancelled');
         };
     }, [rideId]);
+    
+    useEffect(() => {
+        if (ride?.driver && modalStep === 'requesting') {
+            setModalStep('booking_placed');
+        }
+    }, [ride?.driver, modalStep]);
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         if (Platform.OS === 'android') setShowDatePicker(false);
@@ -117,45 +125,30 @@ export default function RequestRentScreen() {
     };
 
     const handleNextStep = async () => {
-        if (step === 0) {
-            setStep(1);
-        } else if (step === 1) {
-            try {
-                const rideData = {
-                    pickupLocation: {
-                        coordinates: [90.4125, 23.8103], // Mock coordinates for "Current location"
-                        address: "2972 Westheimer Rd. Santa Ana, Illinois 85486"
-                    },
-                    destinationLocation: {
-                        coordinates: [90.4043, 23.7940], // Mock coordinates for "Office"
-                        address: "1901 Thornridge Cir. Shiloh, Hawaii 81063"
-                    },
-                    fare: 220,
-                    distance: 1.1,
-                    duration: 10,
-                    rideType: (transportType as string)?.toLowerCase() === 'taxi' ? 'cng' : carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
-                };
+        try {
+            const rideData = {
+                pickupLocation: {
+                    coordinates: [90.4125, 23.8103], // Mock coordinates for "Current location"
+                    address: "2972 Westheimer Rd. Santa Ana, Illinois 85486"
+                },
+                destinationLocation: {
+                    coordinates: [90.4043, 23.7940], // Mock coordinates for "Office"
+                    address: "1901 Thornridge Cir. Shiloh, Hawaii 81063"
+                },
+                fare: 220,
+                distance: 1.1,
+                duration: 10,
+                rideType: (transportType as string)?.toLowerCase() === 'taxi' ? 'cng' : carFirstName.toLowerCase().includes('bike') ? 'bike' : 'car'
+            };
 
-                const res = await createRide(rideData).unwrap();
-                if (res.success) {
-                    setRideId(res.data?._id);
-                    
-                    if (selectedPayment !== '4') { // If not Cash
-                        router.push({
-                            pathname: '/(pages)/checkout',
-                            params: { 
-                                amount: 220, 
-                                rideId: res.data?._id 
-                            }
-                        });
-                    } else {
-                        setModalStep('requesting');
-                    }
-                }
-            } catch (error: any) {
-                console.error('Ride creation error:', error);
-                Alert.alert("Error", error?.data?.message || "Failed to request ride. Please try again.");
+            const res = await createRide(rideData).unwrap();
+            if (res.success) {
+                setRideId(res.data?._id);
+                setModalStep('requesting');
             }
+        } catch (error: any) {
+            console.error('Ride creation error:', error);
+            Alert.alert("Error", error?.data?.message || "Failed to request ride. Please try again.");
         }
     };
 
@@ -179,7 +172,7 @@ export default function RequestRentScreen() {
                     </Pressable>
                     {step !== 2 && (
                         <Text style={tw`text-xl font-bold text-gray-800 flex-1 text-center mr-10`}>
-                            {step === 1 ? 'Payment' : 'Request for rent'}
+                            Request for rent
                         </Text>
                     )}
                 </View>
@@ -286,67 +279,46 @@ export default function RequestRentScreen() {
                         </View>
                     )}
 
-                    {step === 0 ? (
-                        /* Step 0: Date & Time Inputs */
-                        <View style={tw`gap-4 mb-8`}>
-                            <Pressable 
-                                onPress={() => setShowDatePicker(prev => !prev)}
-                                style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between`}
-                            >
-                                <Text style={tw`text-base ${date ? 'text-gray-800' : 'text-gray-400'}`}>
-                                    {date ? formatDate(date) : 'Date'}
-                                </Text>
-                                <Ionicons name="calendar-outline" size={20} color="#10B981" />
-                            </Pressable>
+                    <View style={tw`gap-4 mb-8`}>
+                        <Pressable 
+                            onPress={() => setShowDatePicker(prev => !prev)}
+                            style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between`}
+                        >
+                            <Text style={tw`text-base ${date ? 'text-gray-800' : 'text-gray-400'}`}>
+                                {date ? formatDate(date) : 'Date'}
+                            </Text>
+                            <Ionicons name="calendar-outline" size={20} color="#10B981" />
+                        </Pressable>
 
-                            <Pressable 
-                                onPress={() => setShowTimePicker(prev => !prev)}
-                                style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between`}
-                            >
-                                <Text style={tw`text-base ${time ? 'text-gray-800' : 'text-gray-400'}`}>
-                                    {time ? formatTime(time) : 'Time'}
-                                </Text>
-                                <Ionicons name="time-outline" size={20} color="#10B981" />
-                            </Pressable>
+                        <Pressable 
+                            onPress={() => setShowTimePicker(prev => !prev)}
+                            style={tw`bg-white border border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between`}
+                        >
+                            <Text style={tw`text-base ${time ? 'text-gray-800' : 'text-gray-400'}`}>
+                                {time ? formatTime(time) : 'Time'}
+                            </Text>
+                            <Ionicons name="time-outline" size={20} color="#10B981" />
+                        </Pressable>
 
-                            {showDatePicker && (
-                                <DateTimePicker
-                                    value={date}
-                                    mode="date"
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                                    onChange={onDateChange}
-                                />
-                            )}
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={date}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                                onChange={onDateChange}
+                            />
+                        )}
 
-                            {showTimePicker && (
-                                <DateTimePicker
-                                    value={time}
-                                    mode="time"
-                                    is24Hour={true}
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'clock'}
-                                    onChange={onTimeChange}
-                                />
-                            )}
-                        </View>
-                    ) : (
-                        /* Step 1: Charge Section */
-                        <View style={tw`mt-2 mb-8`}>
-                            <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Charge</Text>
-                            <View style={tw`flex-row justify-between items-center mb-4`}>
-                                <Text style={tw`text-gray-400 font-medium text-base`}>{carFirstName}/per hours</Text>
-                                <Text style={tw`text-gray-800 font-bold text-base`}>$200</Text>
-                            </View>
-                            <View style={tw`flex-row justify-between items-center mb-6`}>
-                                <Text style={tw`text-gray-400 font-medium text-base`}>Vat (5%)</Text>
-                                <Text style={tw`text-gray-800 font-bold text-base`}>$20</Text>
-                            </View>
-                            <View style={tw`h-[1px] bg-gray-100 mb-6`} />
-                            <View style={tw`flex-row justify-between items-center`}>
-                                <Text style={tw`text-gray-500 font-bold text-lg`}>Total</Text>
-                                <Text style={tw`text-gray-800 font-bold text-lg`}>$220</Text>
-                            </View>
-                        </View>
-                    )}
+                        {showTimePicker && (
+                            <DateTimePicker
+                                value={time}
+                                mode="time"
+                                is24Hour={true}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'clock'}
+                                onChange={onTimeChange}
+                            />
+                        )}
+                    </View>
 
                     {/* Payment Method */}
                     <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>Select payment method</Text>
@@ -376,7 +348,7 @@ export default function RequestRentScreen() {
                             style={tw`bg-[#10B981] py-4.5 rounded-2xl items-center shadow-lg ${isCreatingRide ? 'opacity-50' : ''}`}
                         >
                             <Text style={tw`text-white font-bold text-xl`}>
-                                {isCreatingRide ? 'Requesting...' : step === 0 ? 'Confirm Booking' : 'Confirm Ride'}
+                                {isCreatingRide ? 'Requesting...' : 'Confirm Ride'}
                             </Text>
                         </Pressable>
                     ) : ride?.status === 'pending' ? (
@@ -585,6 +557,78 @@ export default function RequestRentScreen() {
                                         style={tw`bg-[#10B981] w-full py-4.5 rounded-2xl items-center mb-2 shadow-md`}
                                     >
                                         <Text style={tw`text-white font-bold text-lg`}>Submit</Text>
+                                    </Pressable>
+                                </View>
+                            )}
+
+                            {modalStep === 'requesting' && (
+                                <View style={tw`items-center py-10`}>
+                                    <ActivityIndicator size="large" color="#10B981" />
+                                    <Text style={tw`text-2xl font-bold text-gray-800 mt-6`}>Searching for Drivers...</Text>
+                                    <Text style={tw`text-gray-400 text-center mt-2 px-6`}>
+                                        We are connecting you with the best nearby drivers.
+                                    </Text>
+                                    <Pressable 
+                                        onPress={() => setModalStep(null)}
+                                        style={tw`mt-10 bg-gray-100 px-8 py-3 rounded-full`}
+                                    >
+                                        <Text style={tw`text-gray-500 font-bold`}>Cancel Request</Text>
+                                    </Pressable>
+                                </View>
+                            )}
+
+                            {modalStep === 'booking_placed' && (
+                                <View style={tw`items-center`}>
+                                    <View style={tw`items-center mt-4 mb-6`}>
+                                        <View style={tw`w-24 h-24 items-center justify-center`}>
+                                            <View style={tw`w-20 h-20 bg-[#E6F7F1] rounded-full items-center justify-center`}>
+                                                <Ionicons name="checkmark" size={44} color="#10B981" />
+                                            </View>
+                                        </View>
+                                    </View>
+                                    <Text style={tw`text-3xl font-bold text-gray-800 mb-2`}>Thank you</Text>
+                                    <Text style={tw`text-gray-500 text-center text-base mb-10 px-4 leading-6`}>
+                                        Your booking has been placed sent to{"\n"}
+                                        <Text style={tw`font-bold text-gray-800`}>{ride?.driver?.name || "Md. Sharif Ahmed"}</Text>
+                                        {"\n"}with his <Text style={tw`font-bold text-[#10B981]`}>{carFirstName}</Text>
+                                    </Text>
+
+                                    {/* Action row with Chat/Call buttons */}
+                                    <View style={tw`flex-row gap-4 mb-10 w-full`}>
+                                        <Pressable
+                                            onPress={() => router.push({
+                                                pathname: '/(pages)/chat',
+                                                params: {
+                                                    userId: ride?.driver?._id,
+                                                    userName: ride?.driver?.name || "Md. Sharif Ahmed",
+                                                    userAvatar: ride?.driver?.avatar
+                                                }
+                                            })}
+                                            style={tw`flex-1 h-14 bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-xl items-center justify-center flex-row gap-2`}
+                                        >
+                                            <Ionicons name="chatbubble-ellipses" size={20} color="#10B981" />
+                                            <Text style={tw`text-[#10B981] font-bold`}>Chat</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            onPress={() => router.push('/(pages)/call')}
+                                            style={tw`flex-1 h-14 bg-[#E6F7F1]/50 border border-[#10B981]/10 rounded-xl items-center justify-center flex-row gap-2`}
+                                        >
+                                            <Ionicons name="call" size={20} color="#10B981" />
+                                            <Text style={tw`text-[#10B981] font-bold`}>Call</Text>
+                                        </Pressable>
+                                    </View>
+
+                                    <Pressable
+                                        onPress={() => {
+                                            setModalStep(null);
+                                            router.push({
+                                                pathname: '/(pages)/track-ride',
+                                                params: { rideId: rideId }
+                                            });
+                                        }}
+                                        style={tw`bg-[#10B981] w-full py-5 rounded-2xl items-center shadow-lg shadow-[#10B981]/30`}
+                                    >
+                                        <Text style={tw`text-white font-bold text-xl`}>Confirm Ride</Text>
                                     </Pressable>
                                 </View>
                             )}
