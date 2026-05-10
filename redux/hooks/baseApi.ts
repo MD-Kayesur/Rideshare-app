@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getItem } from './storage';
-const API_URL = process.env.BACKEND_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const baseQuery = fetchBaseQuery({
   baseUrl: `${API_URL}/api/v1`, // Update this with your actual backend URL
   prepareHeaders: async (headers) => {
