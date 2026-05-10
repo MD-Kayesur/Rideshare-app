@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:5000'; // Update this with your actual backend URL
+const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL; // Uses the URL from .env
 
 class SocketService {
   private socket: Socket | null = null;
