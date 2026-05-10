@@ -14,7 +14,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
+        "EAS_BUILD_NO_EXPO_GO_WARNING": "true",
+        "EXPO_PUBLIC_API_URL": "https://rideshare-app-server.onrender.com",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51TU295Fj2lVeopQI2MkwnursVMwVbX7sCWTqubQsZ4V2tHGoaR02xqUhdstOfN586C52MXHkEIVSIzvzLWu22lXM00k8RdQaG0"
       }
     },
     "production": {
@@ -23,7 +25,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
+        "EAS_BUILD_NO_EXPO_GO_WARNING": "true",
+        "EXPO_PUBLIC_API_URL": "https://rideshare-app-server.onrender.com",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51TU295Fj2lVeopQI2MkwnursVMwVbX7sCWTqubQsZ4V2tHGoaR02xqUhdstOfN586C52MXHkEIVSIzvzLWu22lXM00k8RdQaG0"
       }
     }
   },
