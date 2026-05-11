@@ -49,18 +49,18 @@ export default function ComplainScreen() {
         <View style={tw`flex-1 bg-white`}>
             <StatusBar barStyle="dark-content" />
             <SafeAreaView style={tw`flex-1`}>
-                {/* Header */}
+                
                 <View style={tw`px-6 py-4 flex-row items-center justify-between`}>
                     <Pressable onPress={() => router.back()} style={tw`flex-row items-center`}>
                         <Ionicons name="chevron-back" size={24} color="#333" />
                         <Text style={tw`text-lg font-bold text-gray-800 ml-1`}>Back</Text>
                     </Pressable>
                     <Text style={tw`text-2xl font-black text-[#1F2937]`}>Complain</Text>
-                    <View style={tw`w-10`} /> {/* Spacer */}
+                    <View style={tw`w-10`} /> 
                 </View>
 
                 <ScrollView style={tw`flex-1 px-6 pt-10`}>
-                    {/* Custom Dropdown */}
+                    
                     <View style={tw`mb-6`}>
                         <Pressable 
                             onPress={() => setIsDropdownOpen(true)}
@@ -71,7 +71,7 @@ export default function ComplainScreen() {
                         </Pressable>
                     </View>
 
-                    {/* Message Input */}
+                    
                     <View style={tw`mb-10`}>
                         <View style={tw`bg-white border border-gray-200 rounded-2xl px-5 py-4`}>
                             <TextInput
@@ -88,7 +88,7 @@ export default function ComplainScreen() {
                     </View>
                 </ScrollView>
 
-                {/* Submit Button */}
+                
                 <View style={tw`px-6 pb-10`}>
                     <Pressable
                         onPress={handleSubmit}
@@ -103,7 +103,7 @@ export default function ComplainScreen() {
                     </Pressable>
                 </View>
 
-                {/* Dropdown Modal */}
+                
                 <Modal
                     visible={isDropdownOpen}
                     transparent={true}
